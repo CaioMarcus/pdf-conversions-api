@@ -8,6 +8,7 @@ import org.apache.pdfbox.text.PDFTextStripperByArea;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 
 public class Deck2
@@ -60,7 +61,7 @@ public class Deck2
             recebido = "";
 
             System.out.println("Lendo Arquivo " + nomeDoArquivo);
-            PDDocument reader = Loader.loadPDF(new File(PDFpath + nomeDoArquivo));
+            PDDocument reader = Loader.loadPDF(Path.of(PDFpath, nomeDoArquivo).toFile());
 
             PDFTextStripperByArea stripper = new PDFTextStripperByArea();
             PDFTextStripperByArea stripper2 = new PDFTextStripperByArea();

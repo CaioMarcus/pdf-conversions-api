@@ -5,10 +5,9 @@ import ConversoesAPI.Conversions.Helpers.PathsHelper;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
 import com.caio.pdf_conversions_api.Conversions.ConversionType;
 import com.caio.pdf_conversions_api.Conversions.RelatorioAnalitico.RelatorioAnalitico;
-import com.caio.pdf_conversions_api.Conversions.Universal.UniversalXlsReader.DocumentType;
+import com.caio.pdf_conversions_api.Conversions.Universal.Universal;
 import com.caio.pdf_conversions_api.Exceptions.*;
 import com.caio.pdf_conversions_api.Models.StartConversion;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,9 +26,6 @@ import java.nio.file.StandardCopyOption;
  */
 @Service
 public class ConversionServices {
-
-    @Value("${result_retry_amount}")
-    private int resultRetryAmount;
 
     /**
      * Inicia uma nova conversão como thread.
@@ -174,10 +170,12 @@ public class ConversionServices {
         try{
             String adjustedType = type.toUpperCase().replace(" ", "_");
             ConversionType documentType = ConversionType.valueOf(adjustedType);
-            switch (documentType){
-                case ConversionType.RELATORIO_ANALITICO:
-                    return new RelatorioAnalitico(conversionFilesPath);
-            }
+
+            if (documentType == ConversionType.RELATORIO_ANALITICO)
+                return new RelatorioAnalitico(conversionFilesPath);
+            if (documentType == ConversionType.UNIVERSAL)
+                return new Universal(conversionFilesPath);
+
             throw new ConversionTypeNotFound();
         } catch (IllegalArgumentException e){
             e.printStackTrace();

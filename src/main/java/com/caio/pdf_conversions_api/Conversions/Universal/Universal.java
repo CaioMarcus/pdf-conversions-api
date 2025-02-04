@@ -1,7 +1,7 @@
 package com.caio.pdf_conversions_api.Conversions.Universal;
 
 
-import com.caio.pdf_conversions_api.Helpers.ConversionDateParser;
+import com.caio.pdf_conversions_api.Conversions.ConversionThread;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import com.caio.pdf_conversions_api.Strippers.PDFLayoutTextStripperByArea;
 import io.github.jonathanlink.PDFLayoutTextStripper;
@@ -15,15 +15,15 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 
 import java.awt.geom.Rectangle2D;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class Universal extends ConversionDateParser {
+public class Universal extends ConversionThread {
     
     private int indiceFonteDeRenda;
     private String editoraAtual = "universal";
@@ -36,6 +36,19 @@ public class Universal extends ConversionDateParser {
 
     private int indiceTerritorios, indiceInicioTerritorio;
 
+    public Universal(String pdfPath) {
+        super(pdfPath);
+    }
+
+    @Override
+    public void run() {
+        try {
+            this.retornaResultados();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public void setDatePatterns() {
         this.datePatterns = new LinkedHashMap<>(){
@@ -45,23 +58,21 @@ public class Universal extends ConversionDateParser {
         };
     }
 
-    public List<Map<String, String[]>> retornaResultados(String PDFpath, File pasta) throws Exception {
+    protected List<Map<String, String[]>> retornaResultados() throws Exception {
         String obraAtual = "";
-        String[] arquivosNaPasta = pasta.list();
         String data = "";
         Map<String, String[]> Resultados = new LinkedHashMap<>();
         Resultados.put("0", linhaIndice);
         Map<String, String[]> verifica = new LinkedHashMap<>();
 
         List<Map<String, String[]>> cedulas = new ArrayList<>();
-
         assert arquivosNaPasta != null;
-        for (String nomeDoArquivo : arquivosNaPasta) {
+        for (String nomeDoArquivo : this.arquivosNaPasta) {
             System.out.println("Lendo Arquivo " + nomeDoArquivo);
             PDDocument reader = null;
             PDDocument readerTerritorio = null;
             try {
-                reader = Loader.loadPDF(new File(PDFpath + nomeDoArquivo));
+                reader = Loader.loadPDF(Path.of(this.pdfPath, nomeDoArquivo).toFile());
 
                 PDFTextStripperByArea stripper = new PDFTextStripperByArea();
                 PDFTextStripperByArea stripper2 = new PDFTextStripperByArea();
@@ -200,11 +211,11 @@ public class Universal extends ConversionDateParser {
                     String[] obras = stripper.getTextForRegion("rect1").split(System.lineSeparator());
                     String[] resto = stripper.getTextForRegion("rect2").split(System.lineSeparator());
                     String[] fonteDeRenda = stripper.getTextForRegion("rectFonteRenda").split(System.lineSeparator());
-                    String[] territorioExploracao = layoutStripper.getTextForRegion("TerritorioExploracao").split("\n");
+                    String[] territorioExploracao = layoutStripper.getTextForRegion("TerritorioExploracao").split(System.lineSeparator());
                     String[] territoriosAteData = stripper4.getTextForRegion("TerritorioEFonteDeRenda").split(System.lineSeparator());
-                    String[] territoriosAteDataComEspacos = layoutStripper2.getTextForRegion("TerritorioEFonteDeRenda").split("\n");
+                    String[] territoriosAteDataComEspacos = layoutStripper2.getTextForRegion("TerritorioEFonteDeRenda").split(System.lineSeparator());
                     //String[] territorioComTudo = stripper4.getTextForRegion("TerritorioEFonteDeRenda").split(System.lineSeparator());
-                    //String[] territorioComTudotst = layoutStripper.getTextForRegion("TerritorioEFonteDeRenda").split("\n");
+                    //String[] territorioComTudotst = layoutStripper.getTextForRegion("TerritorioEFonteDeRenda").split(System.lineSeparator());
                     //var tst = pegaTerritorios(readerTerritorio, i);
                     List<String> fonteDeRendaTudo = List.of(stripper3.getTextForRegion("rectFonteRendaTudo").split(System.lineSeparator()));
 
@@ -212,7 +223,6 @@ public class Universal extends ConversionDateParser {
                         continue;
 
                     numeroCatalogo = stripper.getTextForRegion("numeroCatalogo").split(System.lineSeparator());
-
                     fonteDeRendaTudo = consertFonteRendaTudo(fonteDeRendaTudo);
 
                     if (i == 5105 && nomeDoArquivo.equals("Suel - 1Âº 2016 - 1Âº 2021.pdf"))
@@ -822,7 +832,7 @@ public class Universal extends ConversionDateParser {
 
         stripper.setStartPage(paginaAtual);
         stripper.setEndPage(paginaAtual + 1);
-        String[] tst = stripper.getText(readerTerritorio).split("\n");
+        String[] tst = stripper.getText(readerTerritorio).split(System.lineSeparator());
         return null;
     }
 

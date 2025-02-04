@@ -11,6 +11,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -66,7 +67,7 @@ public class Deck {
             recebido = "";
 
             System.out.println("Lendo Arquivo " + nomeDoArquivo);
-            PDDocument reader = Loader.loadPDF(new File(PDFpath + nomeDoArquivo));
+            PDDocument reader = Loader.loadPDF(Path.of(PDFpath, nomeDoArquivo).toFile());
 
             PDFTextStripperByArea stripper = new PDFTextStripperByArea();
             PDFTextStripperByArea stripper2 = new PDFTextStripperByArea();

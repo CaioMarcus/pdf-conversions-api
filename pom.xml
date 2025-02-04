@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.caio</groupId>
-	<artifactId>pdf-conversions-api</artifactId>
+	<artifactId>pdf_conversions_api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>pdf-conversions-api</name>
+	<name>pdf_conversions_api</name>
 	<description>Project to convert Pdfs</description>
 	<url/>
 	<licenses>

@@ -8,7 +8,7 @@ import org.apache.pdfbox.text.PDFTextStripperByArea;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
+import java.nio.file.Path;
 import java.util.*;
 
 public class DeckEditoras {
@@ -31,7 +31,7 @@ public class DeckEditoras {
         assert arquivosNaPasta != null;
         for (String nomeDoArquivo : arquivosNaPasta)
         {
-            PDDocument reader = Loader.loadPDF(new File(PDFpath + nomeDoArquivo));
+            PDDocument reader = Loader.loadPDF(Path.of(PDFpath, nomeDoArquivo).toFile());
             PDFTextStripperByArea stripper = new PDFTextStripperByArea();
             PDFTextStripperByArea stripper2 = new PDFTextStripperByArea();
 

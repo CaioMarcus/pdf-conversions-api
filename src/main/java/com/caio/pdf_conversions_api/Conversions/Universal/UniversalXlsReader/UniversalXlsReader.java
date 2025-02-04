@@ -343,7 +343,7 @@ public class UniversalXlsReader {
     private void setSummaryPositions(Row summaryRow) {
         for (Cell cell : summaryRow) {
             if (cell == null) continue;
-            this.summaryPositions.put(cell.getColumnIndex(), cell.getStringCellValue().replace("\n", " "));
+            this.summaryPositions.put(cell.getColumnIndex(), cell.getStringCellValue().replace(System.lineSeparator(), " "));
         }
     }
 

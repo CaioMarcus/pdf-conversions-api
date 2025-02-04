@@ -13,6 +13,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -28,7 +29,7 @@ public class RelatorioAnalitico extends ConversionThread {
     String[] arrayObraAtual;
 
     public RelatorioAnalitico(String pdfPath) {
-        this.pdfPath = pdfPath;
+        super(pdfPath);
     }
 
     @Override
@@ -38,6 +39,11 @@ public class RelatorioAnalitico extends ConversionThread {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void setDatePatterns() {
+
     }
 
     private List<Map<Integer, String[]>> retornaResultadosInteger()
@@ -66,7 +72,7 @@ public class RelatorioAnalitico extends ConversionThread {
             PDDocument reader = null;
             try {
                 // Recebendo o Documento
-                reader = Loader.loadPDF(new File(pdfPath + nomeDoArquivo));
+                reader = Loader.loadPDF(Path.of(pdfPath, nomeDoArquivo).toFile());
                 // Declarando os Strippers
                 PDFTextStripperByArea stripper = new PDFTextStripperByArea();
                 PDFTextStripperByArea stripper2 = new PDFTextStripperByArea();
@@ -650,4 +656,5 @@ public class RelatorioAnalitico extends ConversionThread {
         out.close();
         System.out.println("Conversão concluída com êxito. Nome do arquivo salvo: " + nomeSaida + ".xlsx");
     }
+
 }
