@@ -86,6 +86,12 @@
 			<artifactId>google-cloud-storage</artifactId>
 			<version>2.48.1</version>
 		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.30</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -93,6 +99,42 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>com.github.wvengen</groupId>
+				<artifactId>proguard-maven-plugin</artifactId>
+				<version>2.6.1</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals><goal>proguard</goal></goals>
+					</execution>
+				</executions>
+				<configuration>
+					<obfuscate>true</obfuscate>
+					<injar>${project.build.finalName}.jar</injar>
+					<outjar>${project.build.finalName}-small.jar</outjar>
+					<outputDirectory>${project.build.directory}</outputDirectory>
+					<proguardInclude>${basedir}/proguard.conf</proguardInclude>
+					<libs>
+						<lib>${java.home}/lib/rt.jar</lib>
+						<lib>${java.home}/lib/jsse.jar</lib>
+					</libs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
