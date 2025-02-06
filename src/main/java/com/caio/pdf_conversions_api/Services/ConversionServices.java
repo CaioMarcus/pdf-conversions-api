@@ -8,6 +8,7 @@ import com.caio.pdf_conversions_api.Conversions.RelatorioAnalitico.RelatorioAnal
 import com.caio.pdf_conversions_api.Conversions.Universal.Universal;
 import com.caio.pdf_conversions_api.Exceptions.*;
 import com.caio.pdf_conversions_api.Models.StartConversion;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +27,13 @@ import java.nio.file.StandardCopyOption;
  */
 @Service
 public class ConversionServices {
+
+    private final CloudStorageService cloudStorageService;
+
+    @Autowired
+    public ConversionServices(CloudStorageService cloudStorageService) {
+        this.cloudStorageService = cloudStorageService;
+    }
 
     /**
      * Inicia uma nova conversão como thread.
@@ -52,7 +60,11 @@ public class ConversionServices {
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        ConversionThread conversionThread = getConversionThread(conversion.getType(), String.valueOf(directory.toAbsolutePath()));
+        ConversionThread conversionThread = getConversionThread(conversion.getType(),
+                String.valueOf(directory.toAbsolutePath()),
+                conversion.getName()
+                );
+
         if (conversionThread == null) return null;
         conversionThread.run();
         return conversionThread;
@@ -110,45 +122,27 @@ public class ConversionServices {
                 progress = conversionThread.getConversionProgress();
             }
 
-            // Envia o resultado da conversão para o cliente. O dado é enviado 3x, para o caso de o cliente não conseguir ler da primeira vez
-            String result = ""; //TODO: Implement way to get result.
 
-            //Saving on file
-            File file = new File("D:/Trabalho/out.json");
-            try (PrintStream out = new PrintStream(new FileOutputStream(file))) {
-                out.print(result);
-            }
+            String gcloudFilePath = cloudStorageService.exportAndUploadData(conversionThread.getResultados(), conversionThread.getVerificacao(), conversionThread.getXlsName());
 
-            /*// Envia o progresso de 100% para o cliente, pois a conversão irá sair do while quando concluida.
+            // Envia o progresso de 100% para o cliente, pois a conversão irá sair do while quando concluida.
             emitter.send(SseEmitter.event()
                     .name("Progress")
                     .data(99)
             );
             Thread.sleep(conversionProgressInterval * 1000L);
 
-            System.out.println("Sending Data");
-
             emitter.send(SseEmitter
                     .event()
                     .name("Result")
-                    .data(result)
-            );
-
-            // Espera 1s antes de enviar o dado novamente.
-            Thread.sleep(conversionProgressInterval * 1000L);
-
-            emitter.send(SseEmitter
-                    .event()
-                    .name("RepeatedFiles")
-                    .data(((NewEcadConversion)conversionThread).getArquivosRepetidos())
+                    .data(gcloudFilePath)
             );
 
             // Envia o progresso de 100% para o cliente, pois a conversão irá sair do while quando concluida.
             emitter.send(SseEmitter.event()
                     .name("Progress")
-                    .data(progress.intValue())
+                    .data(100)
             );
-            Thread.sleep(conversionProgressInterval * 1000L);*/
 
             emitter.complete();
         } catch (Exception e){
@@ -166,15 +160,15 @@ public class ConversionServices {
      * @return
      * @throws ConversionTypeNotFound
      */
-    private ConversionThread getConversionThread(String type, String conversionFilesPath) throws ConversionTypeNotFound {
+    private ConversionThread getConversionThread(String type, String conversionFilesPath, String xlsName) throws ConversionTypeNotFound {
         try{
             String adjustedType = type.toUpperCase().replace(" ", "_");
             ConversionType documentType = ConversionType.valueOf(adjustedType);
 
             if (documentType == ConversionType.RELATORIO_ANALITICO)
-                return new RelatorioAnalitico(conversionFilesPath);
+                return new RelatorioAnalitico(conversionFilesPath, xlsName);
             if (documentType == ConversionType.UNIVERSAL)
-                return new Universal(conversionFilesPath);
+                return new Universal(conversionFilesPath, xlsName);
 
             throw new ConversionTypeNotFound();
         } catch (IllegalArgumentException e){

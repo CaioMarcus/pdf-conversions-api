@@ -36,8 +36,8 @@ public class Universal extends ConversionThread {
 
     private int indiceTerritorios, indiceInicioTerritorio;
 
-    public Universal(String pdfPath) {
-        super(pdfPath);
+    public Universal(String pdfPath, String xlsName) {
+        super(pdfPath, xlsName);
     }
 
     @Override

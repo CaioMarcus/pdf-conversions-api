@@ -2,6 +2,7 @@ package com.caio.pdf_conversions_api.Conversions.RelatorioAnalitico;
 
 
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
+import com.caio.pdf_conversions_api.Helpers.ExportHelper;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -23,19 +24,19 @@ public class RelatorioAnalitico extends ConversionThread {
     int indiceObraAtual;
     int quantiaObras;
     private String classificacaoConexo;
-    private String pdfPath;
     String[] linhasEditora;
     String[] linhasObra;
     String[] arrayObraAtual;
 
-    public RelatorioAnalitico(String pdfPath) {
-        super(pdfPath);
+    public RelatorioAnalitico(String pdfPath, String xlsName) {
+        super(pdfPath, xlsName);
     }
 
     @Override
     public void run() {
         try {
-            this.retornaResultadosInteger();
+            this.converteDados();
+            this.conversionProgress = 100f;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -46,7 +47,7 @@ public class RelatorioAnalitico extends ConversionThread {
 
     }
 
-    private List<Map<Integer, String[]>> retornaResultadosInteger()
+    private void converteDados()
             throws IOException {
         // Inicializando variáveis
         File pasta = new File(pdfPath);
@@ -57,14 +58,11 @@ public class RelatorioAnalitico extends ConversionThread {
         String codigoObra;
         String codigoISWC;
         String nomeObra;
-        // Inicializando map que guardará as linhas do documento
-        Map<Integer, String[]> Resultados = new LinkedHashMap<>();
-        Map<String, String[]> Editoras = new LinkedHashMap<>();
         // Inicializando a lista que guardará o Map
-        List<Map<Integer, String[]>> cedulas = new ArrayList<>();
 
         assert arquivosNaPasta != null;
-        for (String nomeDoArquivo : arquivosNaPasta) {
+        for (int indiceArquivo = 0; indiceArquivo < arquivosNaPasta.length; indiceArquivo++) {
+            String nomeDoArquivo = arquivosNaPasta[indiceArquivo];
             // Atribuindo valores a variáveis que vão ser utilizadas
             quantiaObras = 0;
 
@@ -92,23 +90,23 @@ public class RelatorioAnalitico extends ConversionThread {
                     rect0 = new Rectangle2D.Double(ConvDis(27.02), ConvDis(54.51), ConvDis(52.41), ConvDis(222.51)); // Editora
                     rect1 = new Rectangle2D.Double(ConvDis(50.00), ConvDis(54.51), ConvDis(77.00), ConvDis(222.51)); // Obra
                     // Adiciona o índice da planílha
-                    Resultados.put(Resultados.size(), new String[]{"COD.OBRA", "ISWC", "TÍTULO PRINCIPAL DA OBRA", "COD.TITULAR", "TITULAR", "PSEUDONIMO", "COD.CAE", "ASSOCIAÇÃO", "CAT", "%", "DATA"});
+                    this.resultados.add(new String[]{"COD.OBRA", "ISWC", "TÍTULO PRINCIPAL DA OBRA", "COD.TITULAR", "TITULAR", "PSEUDONIMO", "COD.CAE", "ASSOCIAÇÃO", "CAT", "%", "DATA"});
                     //Editoras.put(String.valueOf(Editoras.size()), new String[]{"COD.OBRA", "ISWC", "TÍTULO PRINCIPAL DA OBRA", "EDITORA", "LINK", "DATA"});
                     //rectData = new Rectangle2D.Double(convDis(118.78), convDis(16.81), convDis(76.29), convDis(20.00)); // Data;
-                } else if (tipo == 2){
+                } else if (tipo == 2) {
                     // Monta os Retângulos
                     rectTudo = new Rectangle2D.Double(ConvDis(10.05), ConvDis(32.28), ConvDis(189.97), ConvDis(249.80)); // Tudo
                     rect0 = new Rectangle2D.Double(ConvDis(27.02), ConvDis(32.28), ConvDis(52.41), ConvDis(249.80)); // Editora
                     rect1 = new Rectangle2D.Double(ConvDis(66.15), ConvDis(32.28), ConvDis(101.24), ConvDis(249.80)); // Obra
                     // Adiciona o índice da planílha
-                    Resultados.put(Resultados.size(), new String[]{"COD.OBRA", "ISWC", "TÍTULO PRINCIPAL DA OBRA"});
+                    this.resultados.add(new String[]{"COD.OBRA", "ISWC", "TÍTULO PRINCIPAL DA OBRA"});
                 } else {
                     // Monta os Retângulos
                     rectTudo = new Rectangle2D.Double(ConvDis(0.0), ConvDis(52.80), ConvDis(210.00), ConvDis(228.86)); // Tudo
                     rect0 = new Rectangle2D.Double(ConvDis(28.72), ConvDis(52.80), ConvDis(24.08), ConvDis(228.86)); // ISRC
                     rect1 = new Rectangle2D.Double(ConvDis(83.50), ConvDis(52.80), ConvDis(59.27), ConvDis(228.86)); // Obra
                     // Adiciona o índice da planílha
-                    Resultados.put(Resultados.size(), new String[]{"COD.OBRA", "ISRC/GRA", "TÍTULO PRINCIPAL DA OBRA", "CLASSIFICAÇÃO"});
+                    this.resultados.add(new String[]{"COD.OBRA", "ISRC/GRA", "TÍTULO PRINCIPAL DA OBRA", "CLASSIFICAÇÃO"});
                 }
                 // Organiza os strippers pela posição do PDF, e adiciona as regioes dos retângulos a eles
                 stripper.setSortByPosition(true);
@@ -139,44 +137,41 @@ public class RelatorioAnalitico extends ConversionThread {
 
                         // Verifica se acabaram as obras do documento
                         if (linha.contains("CATEGORIAS AUTORAIS......:")) {
-                            Resultados.put(Resultados.size(), new String[]{"", "", "", "", "", "", "", "", "", "", ""});
-                            Resultados.put(Resultados.size(), new String[]{"", "", "", "", "", "Total Obras Computadas: ", "", "", "", "", String.valueOf(quantiaObras)});
+                            this.resultados.add(new String[]{"", "", "", "", "", "", "", "", "", "", ""});
+                            this.resultados.add(new String[]{"", "", "", "", "", "Total Obras Computadas: ", "", "", "", "", String.valueOf(quantiaObras)});
                             break;
                         }
 
-                        if (tipo == 1){
+                        if (tipo == 1) {
                             if (verificaLinhaObra(palavras, tipo)) {
                                 arrayObraAtual = retornaArrayLinha(linha, tipo);
                                 quantiaObras++;
                                 classificacaoConexo = linhasTudo[++indicelinhas];
-                                Resultados.put(Resultados.size(), new String[]{ arrayObraAtual[0], arrayObraAtual[1], arrayObraAtual[2], classificacaoConexo});
+                                this.resultados.add(new String[]{arrayObraAtual[0], arrayObraAtual[1], arrayObraAtual[2], classificacaoConexo});
                             }
-                        } else if(tipo == 2){
+                        } else if (tipo == 2) {
                             if (verificaLinhaObra(palavras, tipo)) {
                                 codigoObra = palavras[1];
                                 codigoISWC = palavras[2];
-                                if (!codigoISWC.matches("T\\d{10}")){
+                                if (!codigoISWC.matches("T\\d{10}")) {
                                     codigoISWC = "";
                                 }
-                                Resultados.put(Resultados.size(), new String[]{ codigoObra, codigoISWC,
+                                this.resultados.add(new String[]{codigoObra, codigoISWC,
                                         linha
-                                            .replace(String.format("%s %s %s", palavras[0], codigoObra, codigoISWC), "")
-                                            .replace(String.format(" %s", palavras[palavras.length - 1]), "")
-                                            .trim()
+                                                .replace(String.format("%s %s %s", palavras[0], codigoObra, codigoISWC), "")
+                                                .replace(String.format(" %s", palavras[palavras.length - 1]), "")
+                                                .trim()
                                 });
                             }
-                        }else {
+                        } else {
                             // Verifica se a linha atual é uma obra
                             if (verificaLinhaObra(palavras, tipo)) {
                                 arrayObraAtual = retornaArrayLinha(linha, tipo);
                                 quantiaObras++;
                             } else {
-                                Resultados.put(Resultados.size(), montaLinha(linha));
+                                this.resultados.add(montaLinha(linha));
                             }
                         }
-
-
-
                         /*else if (fazerEditora && verificaLinhaEditora(palavras, tipo)) {
 
                             if (editora != null) {
@@ -187,17 +182,14 @@ public class RelatorioAnalitico extends ConversionThread {
                         }*/
                     }
                 }
+                setConversionProgress(indiceArquivo);
                 // Fecha o documento
                 reader.close();
-            } catch (Exception e){
+            } catch (Exception e) {
                 if (reader != null) reader.close();
                 throw e;
             }
         }
-        // Adiciona o map com os dados na lista de cedulas
-        cedulas.add(Resultados);
-        //cedulas.add(Editoras);
-        return cedulas;
     }
 
     private String[] montaLinha(String linha){
