@@ -2,6 +2,7 @@ package ConversoesAPI.Conversions.Helpers;
 
 import lombok.Data;
 import lombok.Getter;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Classe de Gerenciamento de diretórios.
@@ -50,9 +52,7 @@ public class PathsHelper {
      * @return the string
      */
     public static String createConversionId(String conversionName){
-        return conversionName + LocalDateTime.now().toString().replace(":", "")
-                .replace("-", "")
-                .replace(".", "");
+        return String.format("%s-%s", conversionName, UUID.randomUUID());
     }
 
     /**

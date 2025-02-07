@@ -62,8 +62,8 @@ public class ConversionServices {
 
         ConversionThread conversionThread = getConversionThread(conversion.getType(),
                 String.valueOf(directory.toAbsolutePath()),
-                conversion.getName()
-                );
+                conversionId
+        );
 
         if (conversionThread == null) return null;
         conversionThread.run();
