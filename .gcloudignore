@@ -1,0 +1,10 @@
+# Ignore everything first
+*
+
+# Allow only these files and folders
+!src/
+!.mvn
+!pom.xml
+!Dockerfile
+!mvnw
+!mvnw.cmd

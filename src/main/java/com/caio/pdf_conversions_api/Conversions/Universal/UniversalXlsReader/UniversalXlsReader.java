@@ -1,10 +1,10 @@
 package com.caio.pdf_conversions_api.Conversions.Universal.UniversalXlsReader;
 
+import com.caio.pdf_conversions_api.Conversions.Universal.UniversalXlsReader.Lines.Line;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.GsonBuilder;
-import com.caio.pdf_conversions_api.Universal.UniversalXlsReader.Lines.Line;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellReference;
 

@@ -1,4 +1,4 @@
-package com.caio.pdf_conversions_api.Universal.UniversalXlsReader.Lines;
+package com.caio.pdf_conversions_api.Conversions.Universal.UniversalXlsReader.Lines;
 
 import com.google.gson.annotations.SerializedName;
 

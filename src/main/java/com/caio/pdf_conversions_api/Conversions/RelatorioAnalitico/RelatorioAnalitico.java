@@ -2,7 +2,6 @@ package com.caio.pdf_conversions_api.Conversions.RelatorioAnalitico;
 
 
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
-import com.caio.pdf_conversions_api.Helpers.ExportHelper;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -17,7 +16,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class RelatorioAnalitico extends ConversionThread {
     int ultimoIndiceEditora;

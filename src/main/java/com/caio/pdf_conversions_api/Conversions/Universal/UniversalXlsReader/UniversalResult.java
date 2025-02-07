@@ -1,7 +1,8 @@
 package com.caio.pdf_conversions_api.Conversions.Universal.UniversalXlsReader;
 
+
+import com.caio.pdf_conversions_api.Conversions.Universal.UniversalXlsReader.Lines.Line;
 import com.google.gson.annotations.SerializedName;
-import com.caio.pdf_conversions_api.Universal.UniversalXlsReader.Lines.Line;
 
 import java.util.ArrayList;
 import java.util.List;
