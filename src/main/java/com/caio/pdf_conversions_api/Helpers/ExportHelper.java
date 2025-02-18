@@ -3,7 +3,9 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.WorkbookUtil;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
+import java.io.BufferedWriter;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,6 +26,43 @@ public class ExportHelper {
         } catch (IOException | ParseException e) {
             throw new RuntimeException("Error while exporting data", e);
         }
+    }
+
+    public static void exportToCSV(List<String[]> data, String filePath) throws IOException, ParseException {
+        // Create a BufferedWriter to write to the CSV file
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+
+            // Iterate over the data list
+            for (int rowIndex = 0; rowIndex < data.size(); rowIndex++) {
+                String[] rowData = data.get(rowIndex);
+
+                // Iterate over each cell in the row
+                for (int colIndex = 0; colIndex < rowData.length; colIndex++) {
+                    String cellData = rowData[colIndex];
+
+                    // Write the cell data to the CSV, ensuring proper escaping for special characters
+                    writer.write(escapeCSV(cellData));
+
+                    // Add a comma between values in the same row (except for the last column)
+                    if (colIndex < rowData.length - 1) {
+                        writer.write(",");
+                    }
+                }
+                writer.newLine();  // New line after each row
+            }
+        }
+    }
+
+    // Utility method to escape CSV special characters (e.g., commas, quotes)
+    private static String escapeCSV(String data) {
+        if (data.isEmpty())
+            return "''";
+
+        // If the data contains commas, quotes, or newlines, escape it
+        if (data.contains(",") || data.contains("\"") || data.contains("\n")) {
+            data = "\"" + data.replace("\"", "\"\"") + "\"";
+        }
+        return data;
     }
 
     public static void criaPlanilhaEAdicionaDados(SXSSFWorkbook documento, List<String[]> resultados, List<String[]> verificacao) throws ParseException {

@@ -65,14 +65,24 @@ public class Helper {
         return dado;
     }
 
-    public static String corrigeSeparadorDouble(String valor){
-        if (!valor.matches("\\d*\\.*\\d*,\\d{2}")){
-            if (valor.contains(","))
-                valor = valor.replace(",", "");
-            return valor;
-        }
+    public static String corrigeSeparadorDouble(String number){
+        // Remove thousand separators (both . and , depending on the format)
+        number = number.replaceAll("[.,](?=.*[.,])", "").replace(",", ".");
 
-        return valor.replace(".", "").replace(",", ".");
+        try {
+            return number;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid number format: " + number);
+        }
+    }
+
+    public static String corrigeSeparadorInt(String number){
+        number = number.replaceAll("\\.", "");
+        try {
+            return number;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid number format: " + number);
+        }
     }
 
     public static void exportaDados(String diretorioSaida, String nomeSaida, XSSFWorkbook documentoPlanilha) throws IOException {
@@ -134,5 +144,10 @@ public class Helper {
             numeroCompleto *= -1;
         }
         return numeroCompleto;
+    }
+
+    public static boolean isClose(double mainValue, double toCompare, double percentage) {
+        double allowedDifference = mainValue * (percentage / 100);
+        return Math.abs(mainValue - toCompare) <= allowedDifference;
     }
 }

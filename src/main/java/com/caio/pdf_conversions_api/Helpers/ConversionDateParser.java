@@ -122,6 +122,13 @@ public abstract class ConversionDateParser {
             if (matcher.find()) {
                 String month = matcher.group(positions.getLeft());
                 String year = matcher.group(positions.getRight());
+
+                if (month.matches("\\d{2}/\\d{2}/\\d{4}"))
+                    return month;
+
+                if (month.matches("\\d{2}.\\d{2}.\\d{4}"))
+                    return month.replace(".", "/");
+
                 return String.format("01/%s/%s", monthMap.get(month.toUpperCase()), year);
             }
         }

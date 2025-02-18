@@ -5,8 +5,10 @@ import ConversoesAPI.Conversions.Helpers.PathsHelper;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
 import com.caio.pdf_conversions_api.Conversions.ConversionType;
 import com.caio.pdf_conversions_api.Conversions.RelatorioAnalitico.RelatorioAnalitico;
+import com.caio.pdf_conversions_api.Conversions.Sony.SonyMusic;
 import com.caio.pdf_conversions_api.Conversions.Universal.Universal;
 import com.caio.pdf_conversions_api.Exceptions.*;
+import com.caio.pdf_conversions_api.Helpers.ExportHelper;
 import com.caio.pdf_conversions_api.Models.StartConversion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -121,9 +123,10 @@ public class ConversionServices {
                 // Lê o progresso atual da conversão.
                 progress = conversionThread.getConversionProgress();
             }
-
-
-            String gcloudFilePath = cloudStorageService.exportAndUploadData(conversionThread.getResultados(), conversionThread.getVerificacao(), conversionThread.getXlsName());
+            System.out.println("Exporting Data");
+            ExportHelper.exportToCSV(conversionThread.getResultados(), "D:\\Conversoes\\XLS\\teste.csv");
+            System.out.println("Exporting Data Completed");
+            /*String gcloudFilePath = cloudStorageService.exportAndUploadData(conversionThread.getResultados(), conversionThread.getVerificacao(), conversionThread.getXlsName());
 
             // Envia o progresso de 100% para o cliente, pois a conversão irá sair do while quando concluida.
             emitter.send(SseEmitter.event()
@@ -142,7 +145,7 @@ public class ConversionServices {
             emitter.send(SseEmitter.event()
                     .name("Progress")
                     .data(100)
-            );
+            );*/
 
             emitter.complete();
         } catch (Exception e){
@@ -169,6 +172,8 @@ public class ConversionServices {
                 return new RelatorioAnalitico(conversionFilesPath, xlsName);
             if (documentType == ConversionType.UNIVERSAL)
                 return new Universal(conversionFilesPath, xlsName);
+            if (documentType == ConversionType.SONY_MUSIC)
+                return new SonyMusic(conversionFilesPath, xlsName);
 
             throw new ConversionTypeNotFound();
         } catch (IllegalArgumentException e){
