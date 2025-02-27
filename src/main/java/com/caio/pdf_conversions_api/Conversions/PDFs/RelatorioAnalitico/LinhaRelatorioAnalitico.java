@@ -1,4 +1,4 @@
-package com.caio.pdf_conversions_api.Conversions.RelatorioAnalitico;
+package com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico;
 
 public class LinhaRelatorioAnalitico {
     private String linha;

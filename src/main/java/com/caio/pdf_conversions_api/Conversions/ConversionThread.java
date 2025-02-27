@@ -23,8 +23,8 @@ public abstract class ConversionThread extends ConversionDateParser implements R
     protected float adjustmentWeight;
 
     //Resultados
-    protected List<String[]> resultados = new ArrayList<>();
-    protected List<String[]> verificacao = new ArrayList<>();
+    protected List<Object[]> resultados = new ArrayList<>();
+    protected List<Object[]> verificacao = new ArrayList<>();
 
     protected ConversionThread(String pdfPath, String xlsName) {
         conversionProgress = 0f;
@@ -32,6 +32,14 @@ public abstract class ConversionThread extends ConversionDateParser implements R
         adjustmentWeight = 19f;
         this.pdfPath = pdfPath;
         this.xlsName = xlsName;
+        this.arquivosNaPasta = new File(this.pdfPath).list();
+    }
+
+    protected ConversionThread(String pdfPath) {
+        conversionProgress = 0f;
+        convertWeight = 80f;
+        adjustmentWeight = 19f;
+        this.pdfPath = pdfPath;
         this.arquivosNaPasta = new File(this.pdfPath).list();
     }
 

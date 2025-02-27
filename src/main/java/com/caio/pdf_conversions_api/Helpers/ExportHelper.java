@@ -15,7 +15,7 @@ import java.util.List;
 public class ExportHelper {
     // Initialize with your data
 
-    public static void exportData(List<String[]> resultados, List<String[]> verificacao, String savePath, String saveName) {
+    public static void exportData(List<Object[]> resultados, List<Object[]> verificacao, String savePath, String saveName) {
         try (SXSSFWorkbook documento = new SXSSFWorkbook(100)) { // Keeping 100 rows in memory
             criaPlanilhaEAdicionaDados(documento, resultados, verificacao);
             try (FileOutputStream out = new FileOutputStream(savePath + saveName + ".xlsx")) {
@@ -28,20 +28,22 @@ public class ExportHelper {
         }
     }
 
-    public static void exportToCSV(List<String[]> data, String filePath) throws IOException, ParseException {
+    public static void exportToCSV(List<Object[]> data, String filePath) throws IOException, ParseException {
         // Create a BufferedWriter to write to the CSV file
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
 
             // Iterate over the data list
             for (int rowIndex = 0; rowIndex < data.size(); rowIndex++) {
-                String[] rowData = data.get(rowIndex);
+                Object[] rowData = data.get(rowIndex);
 
                 // Iterate over each cell in the row
                 for (int colIndex = 0; colIndex < rowData.length; colIndex++) {
-                    String cellData = rowData[colIndex];
+                    Object cellData = rowData[colIndex];
+
+                    if (!(cellData instanceof String)) cellData = String.valueOf(cellData);
 
                     // Write the cell data to the CSV, ensuring proper escaping for special characters
-                    writer.write(escapeCSV(cellData));
+                    writer.write(escapeCSV((String) cellData));
 
                     // Add a comma between values in the same row (except for the last column)
                     if (colIndex < rowData.length - 1) {
@@ -65,7 +67,7 @@ public class ExportHelper {
         return data;
     }
 
-    public static void criaPlanilhaEAdicionaDados(SXSSFWorkbook documento, List<String[]> resultados, List<String[]> verificacao) throws ParseException {
+    public static void criaPlanilhaEAdicionaDados(SXSSFWorkbook documento, List<Object[]> resultados, List<Object[]> verificacao) throws ParseException {
         // Reuse styles to save memory
         CellStyle defaultStyle = createDefaultStyle(documento);
         CellStyle headerStyle = createHeaderStyle(documento);
@@ -139,7 +141,7 @@ public class ExportHelper {
         return style;
     }
 
-    private static void populateSheet(Sheet sheet, List<String[]> data, CellStyle defaultStyle, CellStyle headerStyle, CellStyle dateStyle, CellStyle numberStyle) throws ParseException {
+    private static void populateSheet(Sheet sheet, List<Object[]> data, CellStyle defaultStyle, CellStyle headerStyle, CellStyle dateStyle, CellStyle numberStyle) throws ParseException {
         int rowIndex = 0;
 
         // Create a light gray style for striping
@@ -148,39 +150,39 @@ public class ExportHelper {
         stripedStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         stripedStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        for (String[] rowData : data) {
+        for (Object[] rowData : data) {
             Row row = sheet.createRow(rowIndex++);
             row.setHeightInPoints(15);
 
 
             for (int colIndex = 0; colIndex < rowData.length; colIndex++) {
                 Cell cell = row.createCell(colIndex);
-                String cellData = rowData[colIndex];
+                Object cellData = rowData[colIndex];
 
                 if (rowIndex == 1) { // Header row
                     cell.setCellStyle(headerStyle);
-                    cell.setCellValue(cellData);
-                } else if (isDate(cellData)) { // Date
+                    cell.setCellValue((String) cellData);
+                } else if (cellData instanceof String date && isDate(date)) { // Date
                     cell.setCellStyle(dateStyle);
-                    cell.setCellValue(new SimpleDateFormat("dd/MM/yyyy").parse(cellData));
-                } else if (isNumber(cellData)) { // Number
-                    cell.setCellStyle(numberStyle);
-                    cell.setCellValue(Double.parseDouble(cellData.replace(",", "")));
-                } else { // Default
-                    cell.setCellStyle(defaultStyle);
-                    cell.setCellValue(cellData);
+                    cell.setCellValue(new SimpleDateFormat("dd/MM/yyyy").parse(date));
+                } else {
+                    if (cellData instanceof String value){
+                        cell.setCellStyle(defaultStyle);
+                        cell.setCellValue(value);
+                    } else if (cellData instanceof Double value){
+                        cell.setCellStyle(numberStyle);
+                        cell.setCellValue(value);
+                    } else if (cellData instanceof Integer value){
+                        cell.setCellStyle(numberStyle);
+                        cell.setCellValue(value);
+                    }
                 }
             }
         }
     }
 
     private static boolean isDate(String value) {
-        try {
-            new SimpleDateFormat("dd/MM/yyyy").parse(value);
-            return true;
-        } catch (ParseException e) {
-            return false;
-        }
+        return value.matches("\\d{2}/\\d{2}/\\d{4}");
     }
 
     private static boolean isNumber(String value) {

@@ -1,4 +1,4 @@
-package com.caio.pdf_conversions_api.Conversions.RelatorioAnalitico;
+package com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico;
 
 
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
@@ -28,6 +28,7 @@ public class RelatorioAnalitico extends ConversionThread {
     String[] linhasEditora;
     String[] linhasObra;
     String[] arrayObraAtual;
+    String[] linhasAutores;
 
     public RelatorioAnalitico(String pdfPath, String xlsName) {
         super(pdfPath, xlsName);
@@ -79,6 +80,7 @@ public class RelatorioAnalitico extends ConversionThread {
                 // Declarando os Retângulos
                 Rectangle2D rect0;
                 Rectangle2D rect1;
+                Rectangle2D rect2 = null;
                 //Rectangle2D rectData;
                 Rectangle2D rectTudo;
 
@@ -106,8 +108,9 @@ public class RelatorioAnalitico extends ConversionThread {
                     rectTudo = new Rectangle2D.Double(ConvDis(0.0), ConvDis(52.80), ConvDis(210.00), ConvDis(228.86)); // Tudo
                     rect0 = new Rectangle2D.Double(ConvDis(28.72), ConvDis(52.80), ConvDis(24.08), ConvDis(228.86)); // ISRC
                     rect1 = new Rectangle2D.Double(ConvDis(83.50), ConvDis(52.80), ConvDis(59.27), ConvDis(228.86)); // Obra
+                    rect2 = new Rectangle2D.Double(ConvDis(25.30), ConvDis(52.80), ConvDis(56.34), ConvDis(228.86)); // Autores
                     // Adiciona o índice da planílha
-                    this.resultados.add(new String[]{"COD.OBRA", "ISRC/GRA", "TÍTULO PRINCIPAL DA OBRA", "CLASSIFICAÇÃO"});
+                    this.resultados.add(new String[]{"COD.OBRA", "ISRC/GRA", "TÍTULO PRINCIPAL DA OBRA", "AUTOR", "CLASSIFICAÇÃO", "PARTICIPAÇÃO"});
                 }
                 // Organiza os strippers pela posição do PDF, e adiciona as regioes dos retângulos a eles
                 stripper.setSortByPosition(true);
@@ -116,6 +119,9 @@ public class RelatorioAnalitico extends ConversionThread {
                 stripperObra.addRegion("rect1", rect1);
                 //stripper.addRegion("rectData", rectData);
                 stripper2.addRegion("rectTudo", rectTudo);
+
+                if (rect2 != null)
+                    stripperObra.addRegion("rect2", rect2);
                 // Pega o numero de Paginas do arquivo
                 int numOfPag = reader.getNumberOfPages();
                 // Laço para ler cada página
@@ -130,6 +136,8 @@ public class RelatorioAnalitico extends ConversionThread {
                     linhasTudo = stripper2.getTextForRegion("rectTudo").split(System.lineSeparator());
                     linhasEditora = stripper.getTextForRegion("rect0").split(System.lineSeparator());
                     linhasObra = stripperObra.getTextForRegion("rect1").split(System.lineSeparator());
+                    if (rect2 != null)
+                        linhasAutores = stripperObra.getTextForRegion("rect2").split(System.lineSeparator());
                     // Laço para ler cada linha
                     for (int indicelinhas = 0; indicelinhas < linhasTudo.length; indicelinhas++) {
                         String linha = linhasTudo[indicelinhas];
@@ -148,7 +156,10 @@ public class RelatorioAnalitico extends ConversionThread {
                                 arrayObraAtual = retornaArrayLinha(linha, tipo);
                                 quantiaObras++;
                                 classificacaoConexo = linhasTudo[++indicelinhas];
-                                this.resultados.add(new String[]{arrayObraAtual[0], arrayObraAtual[1], arrayObraAtual[2], classificacaoConexo});
+                                this.resultados.add(new String[]{arrayObraAtual[0], arrayObraAtual[1], arrayObraAtual[2], "", classificacaoConexo, ""});
+                            } else {
+                                String autor = Helper.achaTermoEmComum(linha, linhasAutores, true);
+                                this.resultados.add(new String[]{"", "", "", autor, "", palavras[palavras.length - 1]});
                             }
                         } else if (tipo == 2) {
                             if (verificaLinhaObra(palavras, tipo)) {

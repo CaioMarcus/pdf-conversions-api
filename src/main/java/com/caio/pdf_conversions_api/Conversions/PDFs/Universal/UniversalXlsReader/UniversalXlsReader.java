@@ -1,3 +1,4 @@
+/*
 package com.caio.pdf_conversions_api.Conversions.Universal.UniversalXlsReader;
 
 import com.caio.pdf_conversions_api.Conversions.Universal.UniversalXlsReader.Lines.Line;
@@ -351,7 +352,7 @@ public class UniversalXlsReader {
         ObjectMapper objectMapper = new ObjectMapper();
         documentTypes = new HashMap<>();
         try {
-            InputStream inputStream = getClass().getResourceAsStream("/UniversalXlsConfigGeral.json");
+            InputStream inputStream = getClass().getResourceAsStream("/SonyMusicPublishingConfig.json");
             this.documentTypes = objectMapper.readValue(inputStream, Map.class);
         } catch (Exception e) {
             e.printStackTrace();
@@ -374,3 +375,4 @@ public class UniversalXlsReader {
     }
 
 }
+*/

@@ -1,0 +1,54 @@
+{
+  "EXTRATO": [
+    {
+      "StartLine": "10",
+      "Date": "I8",
+      "DocType": "A4",
+      "FontePagadoraLine": "A",
+      "MovimentacaoLine": "B",
+      "TipoLine": "G",
+      "TipoWithGravadoraLine": "I",
+      "TituloObraLine": "H",
+      "TituloWithArtistLine": "I",
+      "QtdLine": "L",
+      "VlrRendimentoLine": "M",
+      "RoyaltyLine": "N",
+      "VlrLiquidoLine": "O"
+    }
+  ],
+  "EXTRATO_EP": [
+    {
+      "StartLine": "10",
+      "Date": "A8",
+      "DocType": "A4",
+      "TipoLine": "B",
+      "TituloObraLine": "C",
+      "ReferenciaAutoralLine": "H",
+      "ReferenciaAutoralComPeriodoShowLine": "G",
+      "QtdLine": "J",
+      "QtdLineComShow": "H",
+      "InterpreteLine": "K",
+      "InterpreteLineComShow": "I",
+      "NomeShowLine": "J",
+      "VlrRendimentoLine": "M",
+      "RoyaltyLine": "N",
+      "VlrLiquidoLine": "O"
+    }
+  ],
+  "EXTRATO_EPX": [
+    {
+      "StartLine": "10",
+      "Date": "A8",
+      "DocType": "A4",
+      "PaisLine": "B",
+      "FontePagadoraLine": "D",
+      "TipoLine": "F",
+      "TituloObraLine": "H",
+      "ReferenciaAutoralLine": "J",
+      "QtdLine": "L",
+      "VlrRendimentoLine": "M",
+      "RoyaltyLine": "N",
+      "VlrLiquidoLine": "O"
+    }
+  ]
+}

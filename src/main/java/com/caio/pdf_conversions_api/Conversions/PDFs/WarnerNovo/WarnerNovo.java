@@ -1,9 +1,9 @@
-package com.caio.pdf_conversions_api.Conversions.WarnerNovo;
+package com.caio.pdf_conversions_api.Conversions.PDFs.WarnerNovo;
 
 
+import com.caio.pdf_conversions_api.Conversions.PDFs.WarnerNovo.DadosArquivo.LinhaDado;
+import com.caio.pdf_conversions_api.Conversions.PDFs.WarnerNovo.DadosArquivo.Obra;
 import com.caio.pdf_conversions_api.Conversions.Warner.WarnerMusicTipo2;
-import com.caio.pdf_conversions_api.Conversions.WarnerNovo.DadosArquivo.LinhaDado;
-import com.caio.pdf_conversions_api.Conversions.WarnerNovo.DadosArquivo.Obra;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;

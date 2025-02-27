@@ -31,7 +31,7 @@ public class CloudStorageService {
         this.BUCKET_NAME = BUCKET_NAME;
     }
 
-    public String exportAndUploadData(List<String[]> resultados, List<String[]> verificacao, String fileName) {
+    public String exportAndUploadData(List<Object[]> resultados, List<Object[]> verificacao, String fileName) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         try (PipedOutputStream out = new PipedOutputStream();

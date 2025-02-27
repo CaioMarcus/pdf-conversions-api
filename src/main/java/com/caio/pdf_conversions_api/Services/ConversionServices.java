@@ -4,8 +4,9 @@ package com.caio.pdf_conversions_api.Services;
 import ConversoesAPI.Conversions.Helpers.PathsHelper;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
 import com.caio.pdf_conversions_api.Conversions.ConversionType;
-import com.caio.pdf_conversions_api.Conversions.RelatorioAnalitico.RelatorioAnalitico;
-import com.caio.pdf_conversions_api.Conversions.Sony.SonyMusic;
+
+import com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico.RelatorioAnalitico;
+import com.caio.pdf_conversions_api.Conversions.PDFs.Sony.SonyMusic;
 import com.caio.pdf_conversions_api.Conversions.Universal.Universal;
 import com.caio.pdf_conversions_api.Exceptions.*;
 import com.caio.pdf_conversions_api.Helpers.ExportHelper;

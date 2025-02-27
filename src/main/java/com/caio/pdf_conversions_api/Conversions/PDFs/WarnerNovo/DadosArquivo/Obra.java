@@ -1,4 +1,4 @@
-package com.caio.pdf_conversions_api.Conversions.WarnerNovo.DadosArquivo;
+package com.caio.pdf_conversions_api.Conversions.PDFs.WarnerNovo.DadosArquivo;
 
 import java.util.ArrayList;
 import java.util.List;

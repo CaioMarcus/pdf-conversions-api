@@ -1,7 +1,8 @@
-package com.caio.pdf_conversions_api.Conversions.Sony;
+package com.caio.pdf_conversions_api.Conversions.PDFs.Sony;
 
 import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.LineData;
-import com.caio.pdf_conversions_api.Conversions.BaseConversion;
+
+import com.caio.pdf_conversions_api.Conversions.PDFs.BasePdfConversion;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -10,7 +11,7 @@ import java.util.regex.Pattern;
 
 import static com.caio.pdf_conversions_api.Helpers.Helper.mmParaPx;
 
-public class SonyMusic extends BaseConversion {
+public class SonyMusic extends BasePdfConversion {
 
     public SonyMusic(String pdfPath, String xlsName) {
         super(pdfPath, xlsName);
@@ -43,17 +44,17 @@ public class SonyMusic extends BaseConversion {
     }
 
     @Override
+    protected void setVerificationLine() {
+
+    }
+
+    @Override
     public void setDatePatterns() {
         this.datePatterns = new LinkedHashMap<>() {
             {
                 put(Pattern.compile("(Para o periodo que:) (\\d{2}.\\d{2}.\\d{4})"), Pair.of(2,2));
             }
         };
-    }
-
-    @Override
-    protected void doVerification(LineData line, String currentDocumentName) {
-        // Verification for this must be implemented later;
     }
 
     @Override
@@ -71,17 +72,17 @@ public class SonyMusic extends BaseConversion {
         String value = Helper.corrigeSeparadorDouble(correctNumber(lineSep[lineSep.length - 1]));
         String period = lineSep[0];
 
-        String[] result = new String[]{
+        Object[] result = new String[]{
                 productTitle, title, country, amount, royalties, distibuted, value, period, this.currentDate
         };
 
-        this.addResult(result, value);
+        this.addResult(result, Helper.ajustaNumero(value));
     }
 
     @Override
     protected boolean isDataLine(LineData line) {
         String[] lineSeparated = line.getLineSeparated();
-        return lineSeparated[0].matches("^\\d{4} (Q?\\d{1,2})$");
+        return lineSeparated[0].matches("^\\d{4}\\s*(Q?\\d{1,2})$");
     }
 
     protected String correctNumber(String number){

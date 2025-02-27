@@ -1,4 +1,4 @@
-package com.caio.pdf_conversions_api.Conversions.Deck;
+package com.caio.pdf_conversions_api.Conversions.PDFs.Deck;
 
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.pdfbox.Loader;

@@ -1,7 +1,8 @@
-package com.caio.pdf_conversions_api.Conversions;
+package com.caio.pdf_conversions_api.Conversions.PDFs;
 
 import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.LineData;
 import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.PDFAreaStripper;
+import com.caio.pdf_conversions_api.Conversions.ConversionThread;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -9,18 +10,13 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
-public abstract class BaseConversion extends ConversionThread {
+public abstract class BasePdfConversion extends ConversionThread {
 
     protected String currentDate;
-
+    protected String currentFile;
 //    protected String nomeDocumentoAtual;
 //    protected PDDocument documentoAtual;
 //    protected List<LineData> currentPageLines;
@@ -41,12 +37,22 @@ public abstract class BaseConversion extends ConversionThread {
     protected double documentTotalSum;
     protected double acceptableDifferencePercentage;
 
-    protected BaseConversion(String pdfPath, String xlsName) {
+    protected BasePdfConversion(String pdfPath, String xlsName) {
         super(pdfPath, xlsName);
         setUnwantedPageLines();
         setUnwantedLines();
         setIndexLine();
         setDateLine();
+        this.setVerificationLine();
+    }
+
+    protected BasePdfConversion(String pdfPath) {
+        super(pdfPath);
+        setUnwantedPageLines();
+        setUnwantedLines();
+        setIndexLine();
+        setDateLine();
+        this.setVerificationLine();
     }
 
     @Override
@@ -62,6 +68,7 @@ public abstract class BaseConversion extends ConversionThread {
         this.resultados.add(indexLine);
 
         for (String arquivo : this.arquivosNaPasta) {
+            this.currentFile = arquivo;
             processFile(arquivo);
         }
 
@@ -97,8 +104,8 @@ public abstract class BaseConversion extends ConversionThread {
             resetDocumentAtributes();
 
             int totalPages = documentoAtual.getNumberOfPages();
-            for (int currentPage = 0; currentPage < totalPages; currentPage++) {
-                System.out.printf("Lendo Página: %d%n", currentPage + 1);
+            for (int currentPage = 1; currentPage < totalPages + 1; currentPage++) {
+                System.out.printf("Lendo Página: %d%n", currentPage);
                 List<LineData> currentPageLines = extractPageData(documentoAtual, currentPage);
                 processLines(currentPageLines, arquivo);
             }
@@ -128,7 +135,7 @@ public abstract class BaseConversion extends ConversionThread {
                 return;
             }
 
-            if (isDateLine(line) && (readDateEveryPage || this.currentDate == null)){
+            if ((readDateEveryPage || this.currentDate == null) && isDateLine(line)){
                 readDate(line);
                 continue;
             }
@@ -137,7 +144,7 @@ public abstract class BaseConversion extends ConversionThread {
                 continue;
 
             if (isVerificationLine(line)){
-                this.doVerification(line, currentDocumentName);
+                this.doVerification(lines, line, currentDocumentName);
                 return;
             }
 
@@ -150,16 +157,15 @@ public abstract class BaseConversion extends ConversionThread {
         this.currentDate = this.convertDate(line.getFullLine());
     }
 
-    protected void addResult(String[] result, String value){
+    protected void addResult(Object[] result, Double value){
         if (this.resultados.getFirst().length != result.length)
             throw new RuntimeException("Size of Index Line different from result. This will break later.");
 
         this.resultados.add(result);
-        double doubleValue = Helper.ajustaNumero(value);
-        this.documentTotalSum += doubleValue;
+        this.documentTotalSum += value;
     }
 
-    protected void doVerification(LineData line, String currentDocumentName){
+    protected void doVerification(List<LineData> lines, LineData line, String currentDocumentName){
         String documentGivenValue = this.extractVerificationLine(line);
 
         double documentGivenValueDouble = Helper.ajustaNumero(documentGivenValue);
@@ -215,6 +221,7 @@ public abstract class BaseConversion extends ConversionThread {
     protected abstract void setUnwantedPageLines();
     protected abstract void setUnwantedLines();
     protected abstract void setDateLine();
+    protected abstract void setVerificationLine();
     protected abstract void processLine(LineData line);
     protected abstract boolean isDataLine(LineData line);
 }

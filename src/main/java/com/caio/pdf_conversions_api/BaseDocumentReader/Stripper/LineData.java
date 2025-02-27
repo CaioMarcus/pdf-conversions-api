@@ -47,12 +47,12 @@ public class LineData {
             return new String[]{};
 
         Float lastCharX = lineContent.get(0).getX();
-        List<String> lineMounted = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder();
         for (CharData charData : lineContent) {
             if (charData.getX() - lastCharX > sensibility) {
                 stringBuilder.append("    ");
             }
+            if (charData.getLetter().isBlank() || charData.getLetter().isEmpty()) continue;
             stringBuilder.append(charData.getLetter());
             lastCharX = charData.getX();
         }
