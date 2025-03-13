@@ -23,6 +23,7 @@ public abstract class BasePdfConversion extends ConversionThread {
 //    protected boolean skipPage;
     protected boolean extractDateEachPage;
     protected int currentPage = 0;
+    protected int currentLine = 0;
 
     protected boolean stripperSetSortByPosition = true;
     protected Rectangle2D.Double stripperBounds;
@@ -35,7 +36,7 @@ public abstract class BasePdfConversion extends ConversionThread {
     protected boolean readDateEveryPage = false;
 
     protected double documentTotalSum;
-    protected double acceptableDifferencePercentage;
+    protected double acceptableDifferencePercentage = 5;
 
     protected BasePdfConversion(String pdfPath, String xlsName) {
         super(pdfPath, xlsName);
@@ -130,7 +131,9 @@ public abstract class BasePdfConversion extends ConversionThread {
     }
 
     protected void processLines(List<LineData> lines, String currentDocumentName) {
-        for (LineData line : lines) {
+        for (int lineIdx = 0; lineIdx < lines.size(); lineIdx++) {
+            this.currentLine = lineIdx;
+            LineData line = lines.get(lineIdx);
             if (isLineFromUnwantedPage(line)){
                 return;
             }
@@ -171,7 +174,7 @@ public abstract class BasePdfConversion extends ConversionThread {
         double documentGivenValueDouble = Helper.ajustaNumero(documentGivenValue);
         String verificationResult = "VALORES BATERAM";
 
-        if (!Helper.isClose(documentGivenValueDouble, this.documentTotalSum, this.acceptableDifferencePercentage / 100)) {
+        if (!Helper.isClose(documentGivenValueDouble, this.documentTotalSum, this.acceptableDifferencePercentage)) {
             verificationResult = "VALORES NÃO BATERAM";
         }
 

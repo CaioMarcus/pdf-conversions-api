@@ -66,6 +66,21 @@ public class PDFAreaStripper extends PDFTextStripper {
     }
 
     @Override
+    public String getArticleEnd() {
+
+        if (!this.currentLineData.getLineContent().isEmpty() && !this.lines.contains(currentLineData)) {
+            lines.add(currentLineData);
+        }
+
+        currentLineData = null;
+        lastSegment = null;
+
+        resetPositions();
+
+        return super.getArticleEnd();
+    }
+
+    @Override
     protected void writeString(String string, List<TextPosition> textPositions) throws IOException {
         // Get Y position of the current text segment
         float currentY = textPositions.get(0).getYDirAdj();
