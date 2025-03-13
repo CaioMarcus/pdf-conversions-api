@@ -139,10 +139,10 @@ public class AbramusDigital extends BasePdfConversion {
     public void setDatePatterns() {
         this.datePatterns = new LinkedHashMap<>() {
             {
-                put(Pattern.compile("(\\d{4}) - (\\w+)"), Pair.of(2,1));
-                put(Pattern.compile("(\\w+) - (\\d{4})"), Pair.of(1,2));
                 put(Pattern.compile("(\\dº TRIMESTRE) - (\\d{4})"), Pair.of(1,2));
                 put(Pattern.compile("(\\d{4}) - (\\dº TRIMESTRE)"), Pair.of(2,1));
+                put(Pattern.compile("(\\d{4}) - (\\w+)"), Pair.of(2,1));
+                put(Pattern.compile("(\\w+) - (\\d{4})"), Pair.of(1,2));
             }
         };
     }

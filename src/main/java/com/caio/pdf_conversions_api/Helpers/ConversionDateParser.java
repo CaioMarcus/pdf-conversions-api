@@ -21,6 +21,7 @@ public abstract class ConversionDateParser {
         monthMap.put("JANEIRO", "01");
         monthMap.put("FEVEREIRO", "02");
         monthMap.put("MARÇO", "03");
+        monthMap.put("MARCO", "03");
         monthMap.put("ABRIL", "04");
         monthMap.put("MAIO", "05");
         monthMap.put("JUNHO", "06");
