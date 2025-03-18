@@ -124,10 +124,8 @@ public class ConversionServices {
                 // Lê o progresso atual da conversão.
                 progress = conversionThread.getConversionProgress();
             }
-            System.out.println("Exporting Data");
-            ExportHelper.exportToCSV(conversionThread.getResultados(), "D:\\Conversoes\\XLS\\teste.csv");
-            System.out.println("Exporting Data Completed");
-            /*String gcloudFilePath = cloudStorageService.exportAndUploadData(conversionThread.getResultados(), conversionThread.getVerificacao(), conversionThread.getXlsName());
+
+            String gcloudFilePath = cloudStorageService.exportAndUploadData(conversionThread.getResultados(), conversionThread.getVerificacao(), conversionThread.getXlsName());
 
             // Envia o progresso de 100% para o cliente, pois a conversão irá sair do while quando concluida.
             emitter.send(SseEmitter.event()
@@ -146,8 +144,7 @@ public class ConversionServices {
             emitter.send(SseEmitter.event()
                     .name("Progress")
                     .data(100)
-            );*/
-
+            );
             emitter.complete();
         } catch (Exception e){
             emitter.completeWithError(e);
