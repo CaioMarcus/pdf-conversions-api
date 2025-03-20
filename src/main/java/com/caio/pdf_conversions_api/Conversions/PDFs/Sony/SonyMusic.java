@@ -5,6 +5,7 @@ import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.LineData;
 import com.caio.pdf_conversions_api.Conversions.PDFs.BasePdfConversion;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.pdfbox.pdmodel.PDDocument;
 
 import java.util.LinkedHashMap;
 import java.util.regex.Pattern;
@@ -83,6 +84,11 @@ public class SonyMusic extends BasePdfConversion {
     protected boolean isDataLine(LineData line) {
         String[] lineSeparated = line.getLineSeparated();
         return lineSeparated[0].matches("^\\d{4}\\s*(Q?\\d{1,2})$");
+    }
+
+    @Override
+    protected void executeBeforeReadingPage(PDDocument document) {
+
     }
 
     protected String correctNumber(String number){

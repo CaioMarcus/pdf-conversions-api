@@ -10,6 +10,7 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
@@ -66,14 +67,21 @@ public class Helper {
     }
 
     public static String corrigeSeparadorDouble(String number){
-        // Remove thousand separators (both . and , depending on the format)
-        number = number.replaceAll("[.,](?=.*[.,])", "").replace(",", ".");
-
-        try {
-            return number;
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid number format: " + number);
+        if (Pattern.compile("\\s+").matcher(number).find()){
+            Pattern pattern = Pattern.compile("(-?[0-9,]+[.]-?[0-9]+)");
+            Matcher matcher = pattern.matcher(number);
+            if (matcher.find()){
+                number = matcher.group();
+            }
+            else {
+                Pattern patternComma = Pattern.compile("(-?[0-9.]+,-?[0-9]+)");
+                Matcher matcherComma = patternComma.matcher(number);
+                if (matcherComma.find())
+                    number = matcherComma.group();
+            }
         }
+        return number.replaceAll("[.,](?=.*[.,])", "").replace(",", ".");
+
     }
 
     public static String corrigeSeparadorInt(String number){
@@ -102,11 +110,11 @@ public class Helper {
     }
 
     public static boolean isNumeroComVirgula(String palavra){
-        return palavra.matches("-?[0-9.]+,-?[0-9]+");
+        return palavra.matches("^-?[0-9.]+,-?[0-9]+$");
     }
 
     public static boolean isNumeroComPonto(String palavra){
-        return palavra.matches("-?[0-9,]+.[0-9]+");
+        return palavra.matches("^-?[0-9,]+.-?[0-9]+$");
     }
 
     public static boolean verificaRateioObra(String valor){

@@ -64,15 +64,13 @@ public class LineData {
         return this.getLineSeparated(10);
     }
 
-    public String getStringFromPosition(double x, double width){
-        List<CharData> charDataPosicoes = this.lineContent
-                .stream()
-                .filter(line -> line.getX() >= x && line.getX() <= x + width)
-                .toList();
+    public String getStringFromPosition(double x, double width) {
         StringBuilder stringBuilder = new StringBuilder();
-        for (CharData charData : charDataPosicoes) {
-            stringBuilder.append(charData.getLetter());
-        }
+
+        this.lineContent.stream()
+                .filter(line -> line.getX() >= x && line.getX() <= x + width)
+                .forEach(charData -> stringBuilder.append(charData.getLetter()));
+
         return stringBuilder.toString();
     }
 

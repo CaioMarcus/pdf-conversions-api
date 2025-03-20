@@ -1,5 +1,7 @@
 package com.caio.pdf_conversions_api.Conversions;
 
+import com.caio.pdf_conversions_api.Export.ResultData;
+import com.caio.pdf_conversions_api.Export.VerificationData;
 import com.caio.pdf_conversions_api.Helpers.ConversionDateParser;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,6 +27,10 @@ public abstract class ConversionThread extends ConversionDateParser implements R
     //Resultados
     protected List<Object[]> resultados = new ArrayList<>();
     protected List<Object[]> verificacao = new ArrayList<>();
+
+    // Novo Tipo de Resultados
+    protected List<ResultData> resultadosResultData = new ArrayList<>();
+    protected List<VerificationData> verificacaoResultData = new ArrayList<>();
 
     protected ConversionThread(String pdfPath, String xlsName) {
         conversionProgress = 0f;

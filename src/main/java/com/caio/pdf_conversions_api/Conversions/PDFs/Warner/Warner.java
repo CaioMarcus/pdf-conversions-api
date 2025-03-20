@@ -1,5 +1,7 @@
-package com.caio.pdf_conversions_api.Conversions.Warner;
+package com.caio.pdf_conversions_api.Conversions.PDFs.Warner;
 
+import com.caio.pdf_conversions_api.Export.ResultData;
+import com.caio.pdf_conversions_api.Export.VerificationData;
 import com.caio.pdf_conversions_api.Helpers.ConversionDateParser;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.commons.lang3.tuple.Pair;
@@ -26,6 +28,9 @@ public class Warner extends ConversionDateParser {
                     "sub_fonte", "territorio", "fonte",
                     "unidade", "royalty_total", "percentual_titular", "royalty_titular", "editora_atual", "periodo_royalty"};
 
+    private List<ResultData> resultados;
+    private List<VerificationData> verificationData;
+
     @Override
     public void setDatePatterns() {
         this.datePatterns = new LinkedHashMap<>(){
@@ -35,7 +40,7 @@ public class Warner extends ConversionDateParser {
         };
     }
 
-    public List<Map<String, String[]>> retornaResultados(String PDFpath, File pasta) throws IOException {
+    public void retornaResultados(String PDFpath, File pasta) throws IOException {
 
         String[] meses = new String[] { "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto",
                 "Setembro", "Outubro", "Novembro", "Dezembro" };
@@ -47,7 +52,8 @@ public class Warner extends ConversionDateParser {
         
         Map<String, String[]> verifica = new LinkedHashMap<>();
 
-        List<Map<String, String[]>> cedulas = new ArrayList<>();
+        this.resultados = new ArrayList<>();
+        this.verificationData = new ArrayList<>();
 
         assert arquivosNaPasta != null;
         for (String nomeDoArquivo : arquivosNaPasta) {
@@ -280,9 +286,20 @@ public class Warner extends ConversionDateParser {
                     	if (receitaEntrar.equals("Italy")) {
                     	    System.out.println("Porra");
                         }
-                    	Resultados.put(String.valueOf(Resultados.size()), new String[]
-                    			{obra.replace("-", ""), receitaEntrar, /*codigoEntrar,*/ periodoEntrar,
-                                provedorEntrar, paisEntrar, fontesEntrar, uni, valRec, taxa, valPag, editoraAtual,data});
+                        ResultData resultData = new ResultData();
+                        resultData.setPercent_owned(taxa);
+                        resultData.setPercent_owned(taxa);
+                        resultData.setPercent_owned(taxa);
+                        resultData.setPercent_owned(taxa);
+                        resultData.setPercent_owned(taxa);
+                        resultData.setPercent_owned(taxa);
+                        resultData.setPercent_owned(taxa);
+
+                        resultados.add(resultData);
+
+                    	/*Resultados.put(String.valueOf(Resultados.size()), new String[]
+                    			{obra.replace("-", ""), receitaEntrar, *//*codigoEntrar,*//* periodoEntrar,
+                                provedorEntrar, paisEntrar, fontesEntrar, uni, valRec, taxa, valPag, editoraAtual,data});*/
                     	
                     	somatorio += Double.parseDouble(Helper.corrigeSeparadorDouble(valPag));
                     	indiceObra++;
@@ -307,10 +324,6 @@ public class Warner extends ConversionDateParser {
             reader.close();
         }
         System.out.println("Validando Dados");
-        cedulas.add(Resultados);
-        cedulas.add(verifica);
-        cedulas.add(verifica);
-        return cedulas;
     }
     public void formataExportaPlanilhaUn(List<Map<String, String[]>> entrada, String nomeSaida,
                                              String diretorioSaida, boolean fazerResumo, boolean fazerVerificacao)
@@ -613,5 +626,21 @@ public class Warner extends ConversionDateParser {
             ajustado.add(linha);
         }
         return ajustado.toArray(String[]::new);
+    }
+
+    public List<ResultData> getResultados() {
+        return resultados;
+    }
+
+    public void setResultados(List<ResultData> resultados) {
+        this.resultados = resultados;
+    }
+
+    public List<VerificationData> getVerificationData() {
+        return verificationData;
+    }
+
+    public void setVerificationData(List<VerificationData> verificationData) {
+        this.verificationData = verificationData;
     }
 }

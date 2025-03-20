@@ -136,6 +136,11 @@ public class AbramusDigital extends BasePdfConversion {
     }
 
     @Override
+    protected void executeBeforeReadingPage(PDDocument document) {
+
+    }
+
+    @Override
     public void setDatePatterns() {
         this.datePatterns = new LinkedHashMap<>() {
             {

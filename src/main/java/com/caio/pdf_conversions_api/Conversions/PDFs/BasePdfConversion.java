@@ -3,6 +3,8 @@ package com.caio.pdf_conversions_api.Conversions.PDFs;
 import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.LineData;
 import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.PDFAreaStripper;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
+import com.caio.pdf_conversions_api.Export.ResultData;
+import com.caio.pdf_conversions_api.Export.VerificationData;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -99,11 +101,10 @@ public abstract class BasePdfConversion extends ConversionThread {
     private void processFile(String arquivo) {
         System.out.printf("Lendo documento %s%n", arquivo);
         Path filePath = Path.of(this.pdfPath, arquivo);
-        StringBuffer date;
 
         try (PDDocument documentoAtual = Loader.loadPDF(filePath.toFile())) {
             resetDocumentAtributes();
-
+            this.executeBeforeReadingPage(documentoAtual);
             int totalPages = documentoAtual.getNumberOfPages();
             for (int currentPage = 1; currentPage < totalPages + 1; currentPage++) {
                 System.out.printf("Lendo Página: %d%n", currentPage);
@@ -161,10 +162,18 @@ public abstract class BasePdfConversion extends ConversionThread {
     }
 
     protected void addResult(Object[] result, Double value){
-        if (this.resultados.getFirst().length != result.length)
-            throw new RuntimeException("Size of Index Line different from result. This will break later.");
+        /*if (this.resultados.getFirst().length != result.length)
+            throw new RuntimeException("Size of Index Line different from result. This will break later.");*/
 
         this.resultados.add(result);
+        this.documentTotalSum += value;
+    }
+
+    protected void addResult(ResultData result, Double value){
+        /*if (this.resultados.getFirst().length != result.length)
+            throw new RuntimeException("Size of Index Line different from result. This will break later.");*/
+
+        this.resultadosResultData.add(result);
         this.documentTotalSum += value;
     }
 
@@ -188,6 +197,18 @@ public abstract class BasePdfConversion extends ConversionThread {
             "DOCUMENT NAME: ",
             currentDocumentName
         });
+
+        VerificationData verificationData = new VerificationData();
+
+        verificationData.setStatus(verificationResult);
+        verificationData.setDifference(documentGivenValueDouble - this.documentTotalSum);
+        verificationData.setInformed_total(documentGivenValueDouble);
+        verificationData.setSummed_total(this.documentTotalSum);
+        verificationData.setDocument(this.currentFile);
+        verificationData.setDocument_date(this.currentDate);
+
+
+        this.verificacaoResultData.add(verificationData);
     }
 
     protected boolean isDateLine(LineData line){
@@ -227,4 +248,5 @@ public abstract class BasePdfConversion extends ConversionThread {
     protected abstract void setVerificationLine();
     protected abstract void processLine(LineData line);
     protected abstract boolean isDataLine(LineData line);
+    protected abstract void executeBeforeReadingPage(PDDocument document);
 }

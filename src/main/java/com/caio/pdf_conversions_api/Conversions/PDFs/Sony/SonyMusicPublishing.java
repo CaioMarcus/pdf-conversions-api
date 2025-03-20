@@ -5,6 +5,7 @@ import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.LineData;
 import com.caio.pdf_conversions_api.Conversions.PDFs.BasePdfConversion;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.pdfbox.pdmodel.PDDocument;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -187,6 +188,11 @@ public class SonyMusicPublishing extends BasePdfConversion {
     protected boolean isDataLine(LineData line) {
         String[] lineSep = line.getLineSeparated();
         return Helper.isNumeroComVirgula(lineSep[lineSep.length - 1]);
+    }
+
+    @Override
+    protected void executeBeforeReadingPage(PDDocument document) {
+
     }
 
     protected boolean isTipoExecucaoLine(LineData line) {

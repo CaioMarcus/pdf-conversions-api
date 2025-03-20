@@ -1,0 +1,35 @@
+{
+  "indexWords": [
+    "Produto",
+    "Obra",
+    "Repassante",
+    "Vendas",
+    "Vendas/Views",
+    "QtdeRef.",
+    "Valor",
+    "BaseCálc.",
+    "%",
+    "%Fin",
+    "%Aut.",
+    "Vlr.Unit",
+    "Vlr.Arrec",
+    "QtdeRef.",
+    "BaseCálc.",
+    "Autor",
+    "Editora",
+    "Repasse"
+  ],
+  "documentEndLine": "Página",
+  "linhasNaoPegar": [
+    "Totais da obra:",
+    "Sub total do Produto:",
+    "Sub total da Obra:",
+    "Sub total do produto:",
+    "Sub total da obra:",
+    "Totais da Obra:",
+    "Totais da obra:"
+  ],
+  "stringTotais": [
+    "Total Geral do período:"
+  ]
+}
