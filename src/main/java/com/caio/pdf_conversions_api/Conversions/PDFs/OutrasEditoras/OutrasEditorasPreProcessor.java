@@ -223,7 +223,8 @@ public class OutrasEditorasPreProcessor {
                         if (previousFirstLine.equals("Valor") || previousFirstLine.equals("Vlr.Arrec")){
                             widthOffset = -10;
                         }
-                        int xOffset = -2;
+
+                        int xOffset = -3;
                         if (previousFirstLine.equals("Autor")){
                             xOffset = -7;
                         }
