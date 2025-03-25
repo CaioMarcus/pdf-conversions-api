@@ -92,15 +92,15 @@ public class PDFAreaStripper extends PDFTextStripper {
 
         // Process each segment in textPositions
         for (TextPosition text : textPositions) {
-            currentX = Float.min(currentX, text.getXDirAdj());
-            currentY = Float.min(currentY, text.getYDirAdj());
-            currentWidth = Float.max(currentWidth, text.getWidthDirAdj());
-            currentHeight = Float.max(currentHeight, text.getHeightDir());
-
             float x = text.getXDirAdj();
             float y = text.getYDirAdj();
             float w = text.getWidthDirAdj();
             float h = text.getHeightDir();
+
+            currentX = Float.min(currentX, x);
+            currentY = Float.min(currentY, y);
+            currentWidth = Float.max(currentWidth, w);
+            currentHeight = Float.max(currentHeight, h);
 
             if (this.limitRegion != null && !isPositionInsideLimitRegion(x,y,w,h)){
                 continue;

@@ -77,7 +77,9 @@ public class OutrasEditoras extends BasePdfConversion {
         Object percentage = getValueFromLine(line, OutrasEditorasColumn.PERCENTAGE, true);
 //        Object vlrUnit = getValueFromLine(line, OutrasEditorasColumn.VLR_UNIT, true);
         Object vendas = getValueFromLine(line, OutrasEditorasColumn.VENDAS, true);
-        Object repassante = getValueFromLine(line, OutrasEditorasColumn.REPASSANTE, false);
+
+        Object repassante = treatRepassante(getValueFromLine(line, OutrasEditorasColumn.REPASSANTE, false));
+
         Object obra = getValueFromLine(line, OutrasEditorasColumn.OBRA, false);
 
         ResultData resultData = new ResultData();
@@ -138,5 +140,12 @@ public class OutrasEditoras extends BasePdfConversion {
         }
 
         return value;
+    }
+
+    private Object treatRepassante(Object repassante){
+        String repassanteStr = ((String) repassante);
+        int slashIndex = repassanteStr.indexOf('/');
+        if (slashIndex == -1) return repassante;
+        return repassanteStr.substring(0, slashIndex);
     }
 }

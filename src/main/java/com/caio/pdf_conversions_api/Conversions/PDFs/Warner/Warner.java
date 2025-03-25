@@ -287,19 +287,36 @@ public class Warner extends ConversionDateParser {
                     	    System.out.println("Porra");
                         }
                         ResultData resultData = new ResultData();
-                        resultData.setPercent_owned(taxa);
-                        resultData.setPercent_owned(taxa);
-                        resultData.setPercent_owned(taxa);
-                        resultData.setPercent_owned(taxa);
-                        resultData.setPercent_owned(taxa);
-                        resultData.setPercent_owned(taxa);
-                        resultData.setPercent_owned(taxa);
+
+                        resultData.setNet_revenue(Helper.ajustaNumero(valPag));
+                        resultData.setPercent_owned(Helper.ajustaNumero(taxa));
+                        resultData.setGross_revenue(Helper.ajustaNumero(valRec));
+                        resultData.setUnits(Integer.parseInt(Helper.corrigeSeparadorInt(uni)));
+                        resultData.setDistributor(fontesEntrar);
+                        resultData.setCountry(paisEntrar);
+                        resultData.setSales_date(periodoEntrar);
+//                        resultData.setCatalog_id(codigoEn);
+                        resultData.setSales_date(periodoEntrar);
+                        resultData.setType(receitaEntrar);
+                        resultData.setTrack_name(obra.replace("-", ""));
+                        resultData.setSource(editoraAtual);
+                        resultData.setStatement_date(data);
+                        resultData.setPath(nomeDoArquivo);
+                        //TODO: Set Artist
 
                         resultados.add(resultData);
 
-                    	/*Resultados.put(String.valueOf(Resultados.size()), new String[]
-                    			{obra.replace("-", ""), receitaEntrar, *//*codigoEntrar,*//* periodoEntrar,
-                                provedorEntrar, paisEntrar, fontesEntrar, uni, valRec, taxa, valPag, editoraAtual,data});*/
+                    	/*Resultados.put(String.valueOf(Resultados.size()), new String[]{
+                                obra.replace("-", ""),
+                                receitaEntrar,
+//                                codigoEntrar,
+                                periodoEntrar,
+                                provedorEntrar,
+                                paisEntrar,
+                                fontesEntrar,
+                                uni,
+                                valRec,
+                                taxa, valPag, editoraAtual, data});*/
                     	
                     	somatorio += Double.parseDouble(Helper.corrigeSeparadorDouble(valPag));
                     	indiceObra++;
@@ -310,13 +327,23 @@ public class Warner extends ConversionDateParser {
                             double valorSubTot = Double.parseDouble(Helper.corrigeSeparadorDouble(subTotAntes));
                             somatorioSub += valorSubTot;
 
+                            VerificationData verificationData = new VerificationData();
+
                             if (Math.round(somatorio) != Math.round(valorSubTot)) {
                                 verifica.put(String.valueOf(verifica.size()), new String[]
-                                        {"Arquivo Bateu", "Total: ", String.valueOf(somatorio), "Informado: ", String.valueOf(valorSubTot), nomeDoArquivo });
+                                        {"Arquivo Não Bateu", "Total: ", String.valueOf(somatorio), "Informado: ", String.valueOf(valorSubTot), nomeDoArquivo });
+                                verificationData.setStatus("Arquivo Não Bateu");
                             } else {
                                 verifica.put(String.valueOf(verifica.size()), new String[]
                                         {"Arquivo Bateu", "Total: ", String.valueOf(somatorio), "Informado: ", String.valueOf(valorSubTot), nomeDoArquivo });
+                                verificationData.setStatus("Arquivo Bateu");
                             }
+                            verificationData.setInformed_total(valorSubTot);
+                            verificationData.setSummed_total(somatorio);
+                            verificationData.setDifference(valorSubTot - somatorio);
+                            verificationData.setDocument(nomeDoArquivo);
+                            verificationData.setDocument_date(data);
+                            this.verificationData.add(verificationData);
                         }
                     }
                 }

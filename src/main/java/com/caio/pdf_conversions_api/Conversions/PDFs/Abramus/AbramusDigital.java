@@ -2,6 +2,8 @@ package com.caio.pdf_conversions_api.Conversions.PDFs.Abramus;
 
 import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.LineData;
 import com.caio.pdf_conversions_api.Conversions.PDFs.BasePdfConversion;
+import com.caio.pdf_conversions_api.Export.ResultData;
+import com.caio.pdf_conversions_api.Export.VerificationData;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -14,6 +16,7 @@ import java.util.regex.Pattern;
 public class AbramusDigital extends BasePdfConversion {
 
     private String currentSong;
+    private String currentAuthor;
     private boolean primeiroValorPassou;
     private Double totalObraAtualCalculado = null;
     private Double totalObraAtualFornecido = null;
@@ -96,7 +99,7 @@ public class AbramusDigital extends BasePdfConversion {
         String currentTotal = lineSeparated[lineSeparated.length - 2];
 
         if (!Helper.verificaRateioObra(currentTotal)){
-            this.setNewObra(fullLine, currentValueDouble);
+            this.setNewObra(line, currentValueDouble);
             return;
         }
         double currentTotalDouble = Helper.ajustaNumero(currentTotal);
@@ -110,11 +113,35 @@ public class AbramusDigital extends BasePdfConversion {
         String periodoAtual = line.getStringFromPosition(currentCoordinates.get("periodo")[0], currentCoordinates.get("periodo")[1]).trim();
         String execAtual = lineSeparated[lineSeparated.length - 3];
 
-        Object[] results = new Object[] {
-          currentSong, tipoAtual, territorioAtual, fonteAtual, formatoAtual, periodoAtual, execAtual, currentTotalDouble, currentValueDouble, currentDate, this.currentFile
-        };
+        /*Object[] results = new Object[] {
+                currentSong,
+                tipoAtual,
+                territorioAtual,
+                fonteAtual,
+                formatoAtual,
+                periodoAtual,
+                execAtual,
+                currentTotalDouble,
+                currentValueDouble,
+                currentDate,
+                this.currentFile
+        };*/
 
-        this.addResult(results, currentValueDouble);
+        ResultData resultData = new ResultData();
+        resultData.setNet_revenue(currentValueDouble);
+        resultData.setGross_revenue(currentTotalDouble);
+        resultData.setUnits(execAtual);
+        resultData.setSales_date(periodoAtual);
+        resultData.setType(formatoAtual);
+        resultData.setSource(fonteAtual);
+        resultData.setCountry(territorioAtual);
+        resultData.setTrack_name(this.currentSong);
+        resultData.setTrack_artist(this.currentAuthor);
+        resultData.setCharacteristic(tipoAtual);
+        resultData.setStatement_date(this.currentDate);
+        resultData.setPath(this.currentFile);
+
+        this.addResult(resultData, currentValueDouble);
         totalObraAtualCalculado += currentValueDouble;
 
 //        System.out.println(fullLine);
@@ -152,23 +179,32 @@ public class AbramusDigital extends BasePdfConversion {
         };
     }
 
-    private void setNewObra(String fullLine, double currentValue){
-        String possivelNovaObra;
+    private void setNewObra(LineData line, double currentValue){
+        String fullLine = line.getFullLine();
+
+        String possibleNewSong;
+        String possibleNewAuthor;
         try {
-            possivelNovaObra = fullLine.substring(0, fullLine.indexOf("(")).trim();
+            int parenthesisIndex = fullLine.indexOf("(");
+            possibleNewSong = fullLine.substring(0, parenthesisIndex).trim();
+            possibleNewAuthor = fullLine.substring(parenthesisIndex + 1)
+                    .replace(line.getLineSeparated()[line.getLineSeparated().length - 1], "")
+                    .trim();
         }catch (StringIndexOutOfBoundsException e){
-            possivelNovaObra = "";
+            possibleNewSong = "";
+            possibleNewAuthor = "";
         }
 
-        if (possivelNovaObra.equals(currentSong))
+        if (possibleNewSong.equals(currentSong))
             return;
 
-        if (totalObraAtualCalculado != null) {
-            doSongVerification(this.totalObraAtualCalculado, totalObraAtualFornecido, this.currentSong, this.currentFile);
+        if (this.totalObraAtualCalculado != null) {
+            doSongVerification(this.totalObraAtualCalculado, this.totalObraAtualFornecido, this.currentSong, this.currentFile);
         }
-        currentSong = possivelNovaObra;
-        totalObraAtualFornecido = currentValue;
-        totalObraAtualCalculado = 0D;
+        this.currentSong = possibleNewSong;
+        this.currentAuthor = possibleNewAuthor;
+        this.totalObraAtualFornecido = currentValue;
+        this.totalObraAtualCalculado = 0D;
     }
 
     private void doSongVerification(Double totalObraAtualCalculado, Double totalObraAtualFornecido, String currentSong, String currentFile) {
@@ -178,7 +214,17 @@ public class AbramusDigital extends BasePdfConversion {
             verificationResult = "OBRA NÃO BATEU";
         }
 
-        this.verificacao.add(new Object[]{
+        VerificationData verificationData = new VerificationData();
+        verificationData.setStatus(verificationResult + ": " + currentSong);
+        verificationData.setInformed_total(totalObraAtualFornecido);
+        verificationData.setSummed_total(totalObraAtualCalculado);
+        verificationData.setDifference(totalObraAtualFornecido - totalObraAtualCalculado);
+        verificationData.setDocument(this.currentFile);
+        verificationData.setDocument_date(this.currentDate);
+
+        this.verificacaoResultData.add(verificationData);
+
+        /*this.verificacao.add(new Object[]{
                 verificationResult,
                 "VALOR INFORMADO: ",
                 totalObraAtualFornecido,
@@ -187,7 +233,7 @@ public class AbramusDigital extends BasePdfConversion {
                 "NOME OBRA:",
                 currentSong,
                 "ARQUIVO:",
-                currentFile});
+                currentFile});*/
     }
 
     @Override

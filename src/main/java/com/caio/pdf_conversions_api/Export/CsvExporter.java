@@ -9,7 +9,7 @@ public class CsvExporter {
             "catalog_id, " +
             "owner_id, " +
             "category, " +
-            "characteristic" +
+            "characteristic, " +
             "configuration, " +
             "country, " +
             "distributor, " +

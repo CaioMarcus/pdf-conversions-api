@@ -31,17 +31,20 @@ public class PdfConversionsApiApplication {
         relatorioAnalitico.run();
         ExportHelper.exportData(relatorioAnalitico.getResultados(), relatorioAnalitico.getVerificacao(),"D:\\Conversoes\\XLS\\", "relatorio_analitico_teste");*/
 
-		//AbramusDigital abramusDigital = new AbramusDigital("D:\\Conversoes\\PDFs");
-		//abramusDigital.run();
-		//ExportHelper.exportData(abramusDigital.getResultados(), abramusDigital.getVerificacao(), "D:\\Conversoes\\XLS\\", "teste");
+		AbramusDigital abramusDigital = new AbramusDigital("D:\\Conversoes\\PDFs");
+		abramusDigital.run();
+		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_3_sons_realize_data.csv", abramusDigital.getResultadosResultData());
+		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_3_sons_realize_verification.csv", abramusDigital.getVerificacaoResultData());
 
-//		OutrasEditoras outrasEditoras = new OutrasEditoras("D:\\Conversoes\\PDFs");
-//		outrasEditoras.run();
-//		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_yasmim_music_warner_dados.csv", outrasEditoras.getResultadosResultData());
-//		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_yasmim_music_warner_verification.csv", outrasEditoras.getVerificacaoResultData());
+		/*OutrasEditoras outrasEditoras = new OutrasEditoras("D:\\Conversoes\\PDFs");
+		outrasEditoras.run();
+		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_3_sons_outras_editoras_dados.csv", outrasEditoras.getResultadosResultData());
+		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_3_sons_outras_editoras_verification.csv", outrasEditoras.getVerificacaoResultData());*/
 
-		Warner warner = new Warner();
-		warner.retornaResultados("D:\\Conversoes\\PDFs", new File("D:\\Conversoes\\PDFs"));
+//		Warner warner = new Warner();
+//		warner.retornaResultados("D:\\Conversoes\\PDFs", new File("D:\\Conversoes\\PDFs"));
+//		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_yasmim_music_warner_dados.csv", warner.getResultados());
+//		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_yasmim_music_warner_verification.csv", warner.getVerificationData());
 
     }
 

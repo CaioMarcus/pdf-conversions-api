@@ -222,6 +222,8 @@ public class OutrasEditorasPreProcessor {
                         int widthOffset = -3;
                         if (previousFirstLine.equals("Valor") || previousFirstLine.equals("Vlr.Arrec")){
                             widthOffset = -10;
+                        } else if (previousFirstLine.equals("Repassante") || previousFirstLine.equals("Obra")){
+                            widthOffset = -20;
                         }
 
                         int xOffset = -3;
