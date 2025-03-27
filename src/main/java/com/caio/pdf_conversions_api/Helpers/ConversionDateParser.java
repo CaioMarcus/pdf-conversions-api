@@ -87,10 +87,10 @@ public abstract class ConversionDateParser {
         monthMap.put("12", "12");
 
         // Trimester Months
-        monthMap.put("1º TRIMESTRE", "01");
-        monthMap.put("2º TRIMESTRE", "04");
-        monthMap.put("3º TRIMESTRE", "07");
-        monthMap.put("4º TRIMESTRE", "10");
+        monthMap.put("1º TRIMESTRE", "03");
+        monthMap.put("2º TRIMESTRE", "06");
+        monthMap.put("3º TRIMESTRE", "09");
+        monthMap.put("4º TRIMESTRE", "12");
 
         // Quarters
         quarters.put(1, "01");
@@ -130,7 +130,7 @@ public abstract class ConversionDateParser {
                 if (month.matches("\\d{2}.\\d{2}.\\d{4}"))
                     return month.replace(".", "/");
 
-                return String.format("01/%s/%s", monthMap.get(month.toUpperCase()), year);
+                return String.format("%s/25/%s", monthMap.get(month.toUpperCase()), year);
             }
         }
         System.out.println("Failed to Parse the Date: " + date);
