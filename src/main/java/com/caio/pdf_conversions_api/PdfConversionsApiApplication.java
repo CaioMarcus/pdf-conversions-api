@@ -17,7 +17,7 @@ import java.text.ParseException;
 public class PdfConversionsApiApplication {
 
 	public static void main(String[] args) throws IOException, ParseException {
-//		SpringApplication.run(PdfConversionsApiApplication.class, args);
+		SpringApplication.run(PdfConversionsApiApplication.class, args);
 
 		/*SonyMusicPublishing sonyMusic = new SonyMusicPublishing("D:\\Conversoes\\PDFs");
         sonyMusic.run();
@@ -31,20 +31,20 @@ public class PdfConversionsApiApplication {
         relatorioAnalitico.run();
         ExportHelper.exportData(relatorioAnalitico.getResultados(), relatorioAnalitico.getVerificacao(),"D:\\Conversoes\\XLS\\", "relatorio_analitico_teste");*/
 
-		AbramusDigital abramusDigital = new AbramusDigital("/home/caio/Conversoes/PDFs/");
+		/*AbramusDigital abramusDigital = new AbramusDigital("/home/caio/Conversoes/PDFs/");
 		abramusDigital.run();
 		CsvExporter.exportToCsv("/home/caio/Conversoes/XLS/marcos_esteves_3_sons_realize_data.csv", abramusDigital.getResultadosResultData());
-		CsvExporter.exportToCsv("/home/caio/Conversoes/XLS/marcos_esteves_3_sons_realize_verification.csv", abramusDigital.getVerificacaoResultData());
+		CsvExporter.exportToCsv("/home/caio/Conversoes/XLS/marcos_esteves_3_sons_realize_verification.csv", abramusDigital.getVerificacaoResultData());*/
 
-		/*OutrasEditoras outrasEditoras = new OutrasEditoras("D:\\Conversoes\\PDFs");
-		outrasEditoras.run();
-		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_3_sons_outras_editoras_dados.csv", outrasEditoras.getResultadosResultData());
-		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_3_sons_outras_editoras_verification.csv", outrasEditoras.getVerificacaoResultData());*/
+//		OutrasEditoras outrasEditoras = new OutrasEditoras("/home/caio/Conversoes/PDFs/");
+//		outrasEditoras.run();
+//		CsvExporter.exportToCsv("/home/caio/Conversoes/XLS/marcos_esteves_3_sons_outras_editoras_dados.csv", outrasEditoras.getResultadosResultData());
+//		CsvExporter.exportToCsv("/home/caio/Conversoes/XLS/marcos_esteves_3_sons_outras_editoras_verification.csv", outrasEditoras.getVerificacaoResultData());
 
 //		Warner warner = new Warner();
-//		warner.retornaResultados("D:\\Conversoes\\PDFs", new File("D:\\Conversoes\\PDFs"));
-//		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_yasmim_music_warner_dados.csv", warner.getResultados());
-//		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_yasmim_music_warner_verification.csv", warner.getVerificationData());
+//		warner.retornaResultados("/home/caio/Conversoes/PDFs/", new File("/home/caio/Conversoes/PDFs/"));
+//		CsvExporter.exportToCsv("/home/caio/Conversoes/XLS/marcos_esteves_yasmim_music_warner_dados.csv", warner.getResultados());
+//		CsvExporter.exportToCsv("/home/caio/Conversoes/XLS/marcos_esteves_yasmim_music_warner_verification.csv", warner.getVerificationData());
 
     }
 

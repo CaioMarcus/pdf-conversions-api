@@ -9,7 +9,10 @@ import com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico.Relatori
 import com.caio.pdf_conversions_api.Conversions.PDFs.Sony.SonyMusic;
 import com.caio.pdf_conversions_api.Conversions.Universal.Universal;
 import com.caio.pdf_conversions_api.Exceptions.*;
+import com.caio.pdf_conversions_api.Export.CsvExportable;
+import com.caio.pdf_conversions_api.Export.CsvExporter;
 import com.caio.pdf_conversions_api.Helpers.ExportHelper;
+import com.caio.pdf_conversions_api.Models.ConversionStatus;
 import com.caio.pdf_conversions_api.Models.StartConversion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -24,6 +27,9 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A classe que gerencia o servićo de conversão. Criua e inicia uma nova conversão.
@@ -90,63 +96,126 @@ public class ConversionServices {
      * @param emitter                    the emitter
      */
     @Async
-    public void returnProgressThenData(ConversionThread conversionThread, int conversionProgressInterval, SseEmitter emitter){
-        Float progress = conversionThread.getConversionProgress();
-        // Definindo o que retornar quando ocorre erro no emitter.
-        emitter.onError((e) -> {
-            System.out.println("Completed: " + e);
-        });
-
+    public void returnProgressThenData(ConversionThread conversionThread, int conversionProgressInterval, SseEmitter emitter) {
         try {
-            // Loop para enviar dados enquanto a conversão não é concluída.
-            while(progress < 100f){
-                // Caso a conversão tenha dado erro, seu progresso será -1.
-                if (progress == -1f) {
-                    // Envia o erro para o cliente.
-                    String conversionError = conversionThread.getError();
-                    emitter.send(SseEmitter.event()
-                            .name("Error")
-                            .data("Error: " + conversionError)
-                    );
-                    // Seta o emitter como completo.
-                    emitter.complete();
-                }
-                else {
-                    // Envia o progresso atual da conversão.
-                    emitter.send(SseEmitter
-                            .event()
-                            .name("Progress")
-                            .data(progress.intValue())
-                    );
-                }
-                // Espera 1 segundo antes de enviar o próximo evento.
-                Thread.sleep(conversionProgressInterval * 1000L);
-                // Lê o progresso atual da conversão.
-                progress = conversionThread.getConversionProgress();
+            monitorConversion(conversionThread, conversionProgressInterval, emitter);
+            sendFinalResult(conversionThread, emitter);
+        } catch (Exception e) {
+            handleException(e, emitter);
+        }
+    }
+
+    /**
+     * Monitora o progresso da conversão e envia eventos SSE para o cliente.
+     */
+    private void monitorConversion(ConversionThread conversionThread, int interval, SseEmitter emitter) throws InterruptedException, IOException {
+        while (true) {
+            Float progress = conversionThread.getConversionProgress();
+
+            if (progress == -1f) {
+                sendErrorEvent(conversionThread, emitter);
+                return;
             }
 
-            String gcloudFilePath = cloudStorageService.exportAndUploadData(conversionThread.getResultados(), conversionThread.getVerificacao(), conversionThread.getXlsName());
+            sendProgressEvent(progress, emitter);
 
-            // Envia o progresso de 100% para o cliente, pois a conversão irá sair do while quando concluida.
+            if (progress >= 100f) break;
+
+            Thread.sleep(interval * 1000L);
+        }
+    }
+
+    /**
+     * Envia os dados finais da conversão.
+     */
+    private void sendFinalResult(ConversionThread conversionThread, SseEmitter emitter) throws IOException {
+        sendProgressEvent(99f, emitter);
+
+        String dataCsvName = String.format("%s_data", conversionThread.getXlsName());
+        String verificationCsvName = String.format("%s_verification", conversionThread.getXlsName());
+
+        /*String dataFilePath = cloudStorageService.exportAndUploadData(
+                conversionThread.getResultadosResultData(),
+                dataCsvName
+        );
+
+        String verificationFilePath = cloudStorageService.exportAndUploadData(
+                conversionThread.getVerificacaoResultData(),
+                verificationCsvName
+        );*/
+
+        String dataFilePath = this.exportToLocalCsv(conversionThread.getResultadosResultData(), dataCsvName);
+        String verificationFilePath = this.exportToLocalCsv(conversionThread.getVerificacaoResultData(), verificationCsvName);
+
+        sendProgressEvent(100f, emitter);
+
+        // Criando JSON com os caminhos dos arquivos
+        Map<String, String> resultData = new HashMap<>();
+        resultData.put("dataFilePath", dataFilePath);
+        resultData.put("verificationFilePath", verificationFilePath);
+
+        // Enviar o JSON como resultado final
+        emitter.send(SseEmitter.event()
+                .name(ConversionStatus.RESULT.getEventName())
+                .data(resultData));
+
+        // Enviar evento de finalização
+        emitter.send(SseEmitter.event()
+                .name(ConversionStatus.COMPLETED.getEventName())
+                .data("Conversion completed successfully!"));
+
+        emitter.complete();
+    }
+
+
+    /**
+     * Envia um evento de progresso.
+     */
+    private void sendProgressEvent(Float progress, SseEmitter emitter) throws IOException {
+        String json = "{" +
+                "\"status\": \"" + ConversionStatus.IN_PROGRESS.getEventName() + "\"," +
+                "\"value\": " + progress.intValue() +
+                "}";
+
+        emitter.send(SseEmitter.event()
+                .name(ConversionStatus.IN_PROGRESS.getEventName())
+                .data(json));
+    }
+
+
+    /**
+     * Envia um evento de erro e finaliza a conexão.
+     */
+    private void sendErrorEvent(ConversionThread conversionThread, SseEmitter emitter) throws IOException {
+        String conversionError = conversionThread.getError();
+        String json = "{" +
+                "\"status\": \"" + ConversionStatus.ERROR.getEventName() + "\"," +
+                "\"value\": \"Error: " + conversionError + "\"" +
+                "}";
+
+        emitter.send(SseEmitter.event()
+                .name(ConversionStatus.ERROR.getEventName())
+                .data(json));
+        emitter.complete();
+    }
+
+
+    /**
+     * Trata exceções inesperadas e finaliza a conexão com erro.
+     */
+    private void handleException(Exception e, SseEmitter emitter) {
+        try {
+            String json = "{" +
+                    "\"status\": \"" + ConversionStatus.ERROR.getEventName() + "\"," +
+                    "\"value\": \"Unexpected error: " + e.getMessage() + "\"" +
+                    "}";
+
             emitter.send(SseEmitter.event()
-                    .name("Progress")
-                    .data(99)
-            );
-            Thread.sleep(conversionProgressInterval * 1000L);
-
-            emitter.send(SseEmitter
-                    .event()
-                    .name("Result")
-                    .data(gcloudFilePath)
-            );
-
-            // Envia o progresso de 100% para o cliente, pois a conversão irá sair do while quando concluida.
-            emitter.send(SseEmitter.event()
-                    .name("Progress")
-                    .data(100)
-            );
-            emitter.complete();
-        } catch (Exception e){
+                    .name(ConversionStatus.ERROR.getEventName())
+                    .data(json));
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        } finally {
             emitter.completeWithError(e);
         }
     }
@@ -178,12 +247,25 @@ public class ConversionServices {
             e.printStackTrace();
             throw new ConversionTypeNotFound();
         }
-
-
-
-
     }
 
+    public String exportToLocalCsv(List<? extends CsvExportable> resultados, String fileName) {
+        String localPath = System.getProperty("user.dir") + "/exports/" + fileName + ".csv";
+
+        try {
+            // Cria diretório caso não exista
+            File directory = new File(System.getProperty("user.dir") + "/exports");
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+
+            // Exporta os dados para CSV
+            CsvExporter.exportToCsv(localPath, resultados);
+            return localPath;
+        } catch (Exception e) {
+            throw new RuntimeException("Error while exporting CSV locally", e);
+        }
+    }
 
     //endregion
 }
