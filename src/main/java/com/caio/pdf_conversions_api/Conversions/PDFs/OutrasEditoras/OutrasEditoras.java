@@ -87,7 +87,7 @@ public class OutrasEditoras extends BasePdfConversion {
         resultData.setUnits(vendas);
         resultData.setTrack_name(obra);
         resultData.setDistributor(repassante);
-        resultData.setGross_revenue(repasse);
+        resultData.setNet_revenue(repasse);
         resultData.setPercent_owned(percentage);
         resultData.setStatement_date(this.currentDate);
         resultData.setPath(this.currentFile);
