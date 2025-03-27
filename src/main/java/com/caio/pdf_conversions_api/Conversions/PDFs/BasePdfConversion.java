@@ -19,11 +19,9 @@ public abstract class BasePdfConversion extends ConversionThread {
 
     protected String currentDate;
     protected String currentFile;
-//    protected String nomeDocumentoAtual;
-//    protected PDDocument documentoAtual;
-//    protected List<LineData> currentPageLines;
-//    protected boolean skipPage;
+    protected List<LineData> currentPageLines;
     protected boolean extractDateEachPage;
+    protected boolean isLineVerificationInFileBeginning;
     protected int currentPage = 0;
     protected int currentLine = 0;
 
@@ -34,11 +32,22 @@ public abstract class BasePdfConversion extends ConversionThread {
     protected String[] unwantedLines;
     protected String[] indexLine;
     protected String verificationLine;
+    protected String documentGivenTotalValue;
     protected String dateLine;
     protected boolean readDateEveryPage = false;
 
     protected double documentTotalSum;
     protected double acceptableDifferencePercentage = 5;
+
+    protected BasePdfConversion(String pdfPath, boolean isLineVerificationInFileBeginning) {
+        super(pdfPath);
+        setUnwantedPageLines();
+        setUnwantedLines();
+        setIndexLine();
+        setDateLine();
+        this.isLineVerificationInFileBeginning = isLineVerificationInFileBeginning;
+        this.setVerificationLine();
+    }
 
     protected BasePdfConversion(String pdfPath, String xlsName) {
         super(pdfPath, xlsName);
@@ -73,6 +82,9 @@ public abstract class BasePdfConversion extends ConversionThread {
         for (String arquivo : this.arquivosNaPasta) {
             this.currentFile = arquivo;
             processFile(arquivo);
+            if (this.isLineVerificationInFileBeginning){
+                this.doVerification(arquivo);
+            }
         }
 
 
@@ -108,7 +120,7 @@ public abstract class BasePdfConversion extends ConversionThread {
             int totalPages = documentoAtual.getNumberOfPages();
             for (int currentPage = 1; currentPage < totalPages + 1; currentPage++) {
                 System.out.printf("Lendo Página: %d%n", currentPage);
-                List<LineData> currentPageLines = extractPageData(documentoAtual, currentPage);
+                this.currentPageLines = extractPageData(documentoAtual, currentPage);
                 processLines(currentPageLines, arquivo);
             }
         } catch (IOException e) {
@@ -135,6 +147,7 @@ public abstract class BasePdfConversion extends ConversionThread {
         for (int lineIdx = 0; lineIdx < lines.size(); lineIdx++) {
             this.currentLine = lineIdx;
             LineData line = lines.get(lineIdx);
+
             if (isLineFromUnwantedPage(line)){
                 return;
             }
@@ -148,12 +161,20 @@ public abstract class BasePdfConversion extends ConversionThread {
                 continue;
 
             if (isVerificationLine(line)){
-                this.doVerification(lines, line, currentDocumentName);
+                if (this.isLineVerificationInFileBeginning){
+                    this.setDocumentGivenTotalValue(line);
+                    continue;
+                }
+                this.doVerification(line, currentDocumentName);
                 return;
             }
 
             this.processLine(line);
         }
+    }
+
+    protected void setDocumentGivenTotalValue(LineData lineData) {
+        this.documentGivenTotalValue = this.extractVerificationLine(lineData);
     }
 
     protected void readDate(LineData line){
@@ -177,10 +198,10 @@ public abstract class BasePdfConversion extends ConversionThread {
         this.documentTotalSum += value;
     }
 
-    protected void doVerification(List<LineData> lines, LineData line, String currentDocumentName){
-        String documentGivenValue = this.extractVerificationLine(line);
-
-        double documentGivenValueDouble = Helper.ajustaNumero(documentGivenValue);
+    protected void doVerification(String currentDocumentName){
+        if (this.documentGivenTotalValue == null || this.documentGivenTotalValue.isEmpty())
+            System.out.println("The documentGivenTotalValue is empty"); //TODO: Change this to use a logger.
+        double documentGivenValueDouble = Helper.ajustaNumero(this.documentGivenTotalValue);
         String verificationResult = "VALORES BATERAM";
 
         if (!Helper.isClose(documentGivenValueDouble, this.documentTotalSum, this.acceptableDifferencePercentage)) {
@@ -188,14 +209,14 @@ public abstract class BasePdfConversion extends ConversionThread {
         }
 
         this.verificacao.add(new String[]{
-            verificationResult,
-            "INFORMADO:",
-            String.valueOf(documentGivenValueDouble),
-            "CALCULADO:",
-            String.valueOf(this.documentTotalSum),
-            "DATA:", this.currentDate,
-            "DOCUMENT NAME: ",
-            currentDocumentName
+                verificationResult,
+                "INFORMADO:",
+                String.valueOf(documentGivenValueDouble),
+                "CALCULADO:",
+                String.valueOf(this.documentTotalSum),
+                "DATA:", this.currentDate,
+                "DOCUMENT NAME: ",
+                currentDocumentName
         });
 
         VerificationData verificationData = new VerificationData();
@@ -206,9 +227,14 @@ public abstract class BasePdfConversion extends ConversionThread {
         verificationData.setSummed_total(this.documentTotalSum);
         verificationData.setDocument(this.currentFile);
         verificationData.setDocument_date(this.currentDate);
-
-
         this.verificacaoResultData.add(verificationData);
+
+        this.documentGivenTotalValue = null;
+    }
+
+    protected void doVerification(LineData line, String currentDocumentName){
+        this.documentGivenTotalValue = this.extractVerificationLine(line);
+        this.doVerification(currentDocumentName);
     }
 
     protected boolean isDateLine(LineData line){

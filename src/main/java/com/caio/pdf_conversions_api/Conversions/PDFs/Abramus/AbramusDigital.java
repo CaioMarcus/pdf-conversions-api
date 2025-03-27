@@ -17,7 +17,6 @@ public class AbramusDigital extends BasePdfConversion {
 
     private String currentSong;
     private String currentAuthor;
-    private boolean primeiroValorPassou;
     private Double totalObraAtualCalculado = null;
     private Double totalObraAtualFornecido = null;
     private AbramusDocType currentAbramusDigitalDocument;
@@ -25,7 +24,7 @@ public class AbramusDigital extends BasePdfConversion {
     private final Map<AbramusDocType, Map<String, Double[]>> columnsCoordinates = new HashMap<>();
 
     public AbramusDigital(String pdfPath) {
-        super(pdfPath);
+        super(pdfPath, true);
 
         Map<String, Double[]> abramusDigitalLargePageCoordinates = new HashMap<>();
         abramusDigitalLargePageCoordinates.put("territorio", new Double[]{Helper.mmParaPx(4.96), Helper.mmParaPx(23.07)});
@@ -56,7 +55,8 @@ public class AbramusDigital extends BasePdfConversion {
 
     @Override
     protected String extractVerificationLine(LineData line) {
-        return "";
+        String[] lineSep = line.getLineSeparated();
+        return lineSep[lineSep.length - 1];
     }
 
     @Override
@@ -86,9 +86,15 @@ public class AbramusDigital extends BasePdfConversion {
     }
 
     @Override
+    protected boolean isVerificationLine(LineData line) {
+        if (this.documentGivenTotalValue != null) return false;
+        LineData nextLine = this.currentPageLines.get(this.currentPageLines.indexOf(line) + 1);
+        return this.isDateLine(nextLine);
+    }
+
+    @Override
     protected void processLine(LineData line) {
         if (this.currentDate == null) return;
-        String fullLine = line.getFullLine();
         String[] lineSeparated = line.getLineSeparated();
         String currentValue = lineSeparated[lineSeparated.length - 1];
 
@@ -198,9 +204,6 @@ public class AbramusDigital extends BasePdfConversion {
         if (possibleNewSong.equals(currentSong))
             return;
 
-        if (this.totalObraAtualCalculado != null) {
-            doSongVerification(this.totalObraAtualCalculado, this.totalObraAtualFornecido, this.currentSong, this.currentFile);
-        }
         this.currentSong = possibleNewSong;
         this.currentAuthor = possibleNewAuthor;
         this.totalObraAtualFornecido = currentValue;

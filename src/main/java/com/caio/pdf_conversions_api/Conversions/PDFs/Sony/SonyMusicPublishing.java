@@ -205,9 +205,9 @@ public class SonyMusicPublishing extends BasePdfConversion {
     }
 
     @Override
-    protected void doVerification(List<LineData> lines, LineData line, String currentDocumentName) {
-        LineData lineToDoVerification = lines.get(lines.indexOf(line) + 1);
-        super.doVerification(lines, lineToDoVerification, currentDocumentName);
+    protected void doVerification(LineData line, String currentDocumentName) {
+        LineData lineToDoVerification = this.currentPageLines.get(this.currentPageLines.indexOf(line) + 1);
+        super.doVerification(lineToDoVerification, currentDocumentName);
     }
 
 

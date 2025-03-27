@@ -31,10 +31,10 @@ public class PdfConversionsApiApplication {
         relatorioAnalitico.run();
         ExportHelper.exportData(relatorioAnalitico.getResultados(), relatorioAnalitico.getVerificacao(),"D:\\Conversoes\\XLS\\", "relatorio_analitico_teste");*/
 
-		AbramusDigital abramusDigital = new AbramusDigital("D:\\Conversoes\\PDFs");
+		AbramusDigital abramusDigital = new AbramusDigital("/home/caio/Conversoes/PDFs/");
 		abramusDigital.run();
-		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_3_sons_realize_data.csv", abramusDigital.getResultadosResultData());
-		CsvExporter.exportToCsv("D:\\Conversoes\\XLS\\marcos_esteves_3_sons_realize_verification.csv", abramusDigital.getVerificacaoResultData());
+		CsvExporter.exportToCsv("/home/caio/Conversoes/XLS/marcos_esteves_3_sons_realize_data.csv", abramusDigital.getResultadosResultData());
+		CsvExporter.exportToCsv("/home/caio/Conversoes/XLS/marcos_esteves_3_sons_realize_verification.csv", abramusDigital.getVerificacaoResultData());
 
 		/*OutrasEditoras outrasEditoras = new OutrasEditoras("D:\\Conversoes\\PDFs");
 		outrasEditoras.run();
