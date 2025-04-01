@@ -79,15 +79,16 @@ public abstract class BasePdfConversion extends ConversionThread {
     protected void leDocumentos() throws IOException {
         this.resultados.add(indexLine);
 
-        for (String arquivo : this.arquivosNaPasta) {
+        String[] naPasta = this.arquivosNaPasta;
+        for (int fileIndex = 0; fileIndex < naPasta.length; fileIndex++) {
+            String arquivo = naPasta[fileIndex];
             this.currentFile = arquivo;
             processFile(arquivo);
-            if (this.isLineVerificationInFileBeginning){
+            if (this.isLineVerificationInFileBeginning) {
                 this.doVerification(arquivo);
             }
+            setConversionProgress(fileIndex);
         }
-
-
         /*
         int numCores = Runtime.getRuntime().availableProcessors();
         ExecutorService fileExecutor = Executors.newFixedThreadPool(numCores / 2); // Parallel file processing

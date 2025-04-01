@@ -5,8 +5,10 @@ import ConversoesAPI.Conversions.Helpers.PathsHelper;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
 import com.caio.pdf_conversions_api.Conversions.ConversionType;
 
+import com.caio.pdf_conversions_api.Conversions.PDFs.Abramus.AbramusDigital;
 import com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico.RelatorioAnalitico;
 import com.caio.pdf_conversions_api.Conversions.PDFs.Sony.SonyMusic;
+import com.caio.pdf_conversions_api.Conversions.PDFs.Warner.Warner;
 import com.caio.pdf_conversions_api.Conversions.Universal.Universal;
 import com.caio.pdf_conversions_api.Exceptions.*;
 import com.caio.pdf_conversions_api.Export.CsvExportable;
@@ -74,8 +76,10 @@ public class ConversionServices {
                 conversionId
         );
 
+        Thread thread = new Thread(conversionThread);
+
         if (conversionThread == null) return null;
-        conversionThread.run();
+        thread.start();
         return conversionThread;
     }
 
@@ -129,8 +133,6 @@ public class ConversionServices {
      * Envia os dados finais da conversão.
      */
     private void sendFinalResult(ConversionThread conversionThread, SseEmitter emitter) throws IOException {
-        sendProgressEvent(99f, emitter);
-
         String dataCsvName = String.format("%s_data", conversionThread.getXlsName());
         String verificationCsvName = String.format("%s_verification", conversionThread.getXlsName());
 
@@ -241,6 +243,8 @@ public class ConversionServices {
                 return new Universal(conversionFilesPath, xlsName);
             if (documentType == ConversionType.SONY_MUSIC)
                 return new SonyMusic(conversionFilesPath, xlsName);
+            if (documentType == ConversionType.ABRAMUS_DIGITAL)
+                return new AbramusDigital(conversionFilesPath);
 
             throw new ConversionTypeNotFound();
         } catch (IllegalArgumentException e){

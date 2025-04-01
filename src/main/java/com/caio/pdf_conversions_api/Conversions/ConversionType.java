@@ -6,5 +6,6 @@ public enum ConversionType {
     WARNER,
     WARNER_NOVO,
     DECK,
-    SONY_MUSIC
+    SONY_MUSIC,
+    ABRAMUS_DIGITAL,
 }
