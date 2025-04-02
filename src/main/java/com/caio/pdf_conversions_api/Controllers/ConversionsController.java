@@ -20,8 +20,6 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("/Conversions")
 public class ConversionsController {
     private final ConversionServices conversionService;
-    @Value("${conversion_progress_interval}")
-    private int conversionProgressInterval;
     @Value("${emitter_timeout_time}")
     private int emitterTimeout;
 
@@ -60,11 +58,11 @@ public class ConversionsController {
     private SseEmitter getEcadSseEmmiter(StartConversion conversion) {
         try {
             // Inicia o Thread da conversão solicitada.
-            ConversionThread conversionThread = conversionService.StartConversion(conversion);
+            ConversionThread conversionThread = conversionService.startConversion(conversion);
             SseEmitter emitter = new SseEmitter(emitterTimeout * 60000L);
             // Inicia thread de retorno do progresso e dados da conversão.
             CompletableFuture
-                    .runAsync(() -> conversionService.returnProgressThenData(conversionThread, conversionProgressInterval, emitter))
+                    .runAsync(() -> conversionService.returnProgressThenData(conversionThread, emitter))
                     .exceptionally(throwable -> {
                         emitter.completeWithError(throwable);
                         return null;

@@ -8,6 +8,7 @@ import com.caio.pdf_conversions_api.Conversions.ConversionType;
 import com.caio.pdf_conversions_api.Conversions.PDFs.Abramus.AbramusDigital;
 import com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico.RelatorioAnalitico;
 import com.caio.pdf_conversions_api.Conversions.PDFs.Sony.SonyMusic;
+import com.caio.pdf_conversions_api.Conversions.PDFs.Sony.SonyMusicPublishing;
 import com.caio.pdf_conversions_api.Conversions.PDFs.Warner.Warner;
 import com.caio.pdf_conversions_api.Conversions.Universal.Universal;
 import com.caio.pdf_conversions_api.Exceptions.*;
@@ -17,6 +18,7 @@ import com.caio.pdf_conversions_api.Helpers.ExportHelper;
 import com.caio.pdf_conversions_api.Models.ConversionStatus;
 import com.caio.pdf_conversions_api.Models.StartConversion;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +40,8 @@ import java.util.Map;
  */
 @Service
 public class ConversionServices {
+    @Value("${conversion_progress_interval}")
+    private int conversionProgressInterval;
 
     private final CloudStorageService cloudStorageService;
 
@@ -58,7 +62,7 @@ public class ConversionServices {
      * @throws InvalidFileException     the invalid file exception
      * @throws IOException              the io exception
      */
-    public ConversionThread StartConversion(StartConversion conversion) throws ArquivoRepetidoException, ConversionTypeNotFound, CorruptFileException, EcadSemApOuSdException, InvalidFileException, IOException {
+    public ConversionThread startConversion(StartConversion conversion) throws ArquivoRepetidoException, ConversionTypeNotFound, CorruptFileException, EcadSemApOuSdException, InvalidFileException, IOException {
         // Conversion Service changed to run on cloud
 
         // Saving the Files
@@ -96,13 +100,12 @@ public class ConversionServices {
      * Retorna o Progresso da conversão enquanto não é finalizada, e então os seus dados, quando a mesma é finalizada.
      *
      * @param conversionThread           the conversion thread
-     * @param conversionProgressInterval the conversion progress interval
      * @param emitter                    the emitter
      */
     @Async
-    public void returnProgressThenData(ConversionThread conversionThread, int conversionProgressInterval, SseEmitter emitter) {
+    public void returnProgressThenData(ConversionThread conversionThread, SseEmitter emitter) {
         try {
-            monitorConversion(conversionThread, conversionProgressInterval, emitter);
+            monitorConversion(conversionThread, emitter);
             sendFinalResult(conversionThread, emitter);
         } catch (Exception e) {
             handleException(e, emitter);
@@ -112,27 +115,24 @@ public class ConversionServices {
     /**
      * Monitora o progresso da conversão e envia eventos SSE para o cliente.
      */
-    private void monitorConversion(ConversionThread conversionThread, int interval, SseEmitter emitter) throws InterruptedException, IOException {
-        while (true) {
-            Float progress = conversionThread.getConversionProgress();
-
+    private void monitorConversion(ConversionThread conversionThread, SseEmitter emitter) throws InterruptedException, IOException {
+        Float progress = conversionThread.getConversionProgress();
+        do{
             if (progress == -1f) {
                 sendErrorEvent(conversionThread, emitter);
                 return;
             }
-
             sendProgressEvent(progress, emitter);
-
             if (progress >= 100f) break;
 
-            Thread.sleep(interval * 1000L);
-        }
+            progress = conversionThread.getConversionProgress();
+        } while (progress < 100f);
     }
 
     /**
      * Envia os dados finais da conversão.
      */
-    private void sendFinalResult(ConversionThread conversionThread, SseEmitter emitter) throws IOException {
+    private void sendFinalResult(ConversionThread conversionThread, SseEmitter emitter) throws IOException, InterruptedException {
         String dataCsvName = String.format("%s_data", conversionThread.getXlsName());
         String verificationCsvName = String.format("%s_verification", conversionThread.getXlsName());
 
@@ -149,31 +149,46 @@ public class ConversionServices {
         String dataFilePath = this.exportToLocalCsv(conversionThread.getResultadosResultData(), dataCsvName);
         String verificationFilePath = this.exportToLocalCsv(conversionThread.getVerificacaoResultData(), verificationCsvName);
 
-        sendProgressEvent(100f, emitter);
+        sendResultEvent(emitter, dataFilePath, verificationFilePath);
+        sendCompletedEvent(emitter);
+    }
 
-        // Criando JSON com os caminhos dos arquivos
-        Map<String, String> resultData = new HashMap<>();
-        resultData.put("dataFilePath", dataFilePath);
-        resultData.put("verificationFilePath", verificationFilePath);
+    private void sendCompletedEvent(SseEmitter emitter) throws IOException {
+        String json = "{" +
+                "\"status\": \"" + ConversionStatus.COMPLETED.getEventName() + "\"," +
+                "\"value\": \"" + "Conversion completed successfully!" + "\"" +
+                "}";
+        // Enviar evento de finalização
+        emitter.send(SseEmitter.event()
+                .name(ConversionStatus.COMPLETED.getEventName())
+                .data(json));
+
+        emitter.complete();
+    }
+
+    private void sendResultEvent(SseEmitter emitter, String dataFilePath, String verificationFilePath) throws IOException, InterruptedException {
+        String json = "{" +
+                "\"status\": \"" + ConversionStatus.RESULT.getEventName() + "\"," +
+                "\"value\": " +
+                    "{" +
+                        " \"dataFilePath\": \"" + dataFilePath + "\"," +
+                        " \"verificationFilePath\": \"" + verificationFilePath + "\"" +
+                    "}" +
+                "}";
 
         // Enviar o JSON como resultado final
         emitter.send(SseEmitter.event()
                 .name(ConversionStatus.RESULT.getEventName())
-                .data(resultData));
+                .data(json));
 
-        // Enviar evento de finalização
-        emitter.send(SseEmitter.event()
-                .name(ConversionStatus.COMPLETED.getEventName())
-                .data("Conversion completed successfully!"));
-
-        emitter.complete();
+        Thread.sleep(this.conversionProgressInterval * 1000L);
     }
 
 
     /**
      * Envia um evento de progresso.
      */
-    private void sendProgressEvent(Float progress, SseEmitter emitter) throws IOException {
+    private void sendProgressEvent(Float progress, SseEmitter emitter) throws IOException, InterruptedException {
         String json = "{" +
                 "\"status\": \"" + ConversionStatus.IN_PROGRESS.getEventName() + "\"," +
                 "\"value\": " + progress.intValue() +
@@ -182,6 +197,8 @@ public class ConversionServices {
         emitter.send(SseEmitter.event()
                 .name(ConversionStatus.IN_PROGRESS.getEventName())
                 .data(json));
+
+        Thread.sleep(this.conversionProgressInterval * 1000L);
     }
 
 
@@ -198,6 +215,7 @@ public class ConversionServices {
         emitter.send(SseEmitter.event()
                 .name(ConversionStatus.ERROR.getEventName())
                 .data(json));
+
         emitter.complete();
     }
 
@@ -243,6 +261,8 @@ public class ConversionServices {
                 return new Universal(conversionFilesPath, xlsName);
             if (documentType == ConversionType.SONY_MUSIC)
                 return new SonyMusic(conversionFilesPath, xlsName);
+            if (documentType == ConversionType.SONY_MUSIC_PUBLISHING)
+                return new SonyMusicPublishing(conversionFilesPath);
             if (documentType == ConversionType.ABRAMUS_DIGITAL)
                 return new AbramusDigital(conversionFilesPath);
 
