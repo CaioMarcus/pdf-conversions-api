@@ -136,7 +136,7 @@ public class ConversionServices {
         String dataCsvName = String.format("%s_data", conversionThread.getXlsName());
         String verificationCsvName = String.format("%s_verification", conversionThread.getXlsName());
 
-        /*String dataFilePath = cloudStorageService.exportAndUploadData(
+        String dataFilePath = cloudStorageService.exportAndUploadData(
                 conversionThread.getResultadosResultData(),
                 dataCsvName
         );
@@ -144,10 +144,10 @@ public class ConversionServices {
         String verificationFilePath = cloudStorageService.exportAndUploadData(
                 conversionThread.getVerificacaoResultData(),
                 verificationCsvName
-        );*/
+        );
 
-        String dataFilePath = this.exportToLocalCsv(conversionThread.getResultadosResultData(), dataCsvName);
-        String verificationFilePath = this.exportToLocalCsv(conversionThread.getVerificacaoResultData(), verificationCsvName);
+        /*String dataFilePath = this.exportToLocalCsv(conversionThread.getResultadosResultData(), dataCsvName);
+        String verificationFilePath = this.exportToLocalCsv(conversionThread.getVerificacaoResultData(), verificationCsvName);*/
 
         sendResultEvent(emitter, dataFilePath, verificationFilePath);
         sendCompletedEvent(emitter);
@@ -262,9 +262,9 @@ public class ConversionServices {
             if (documentType == ConversionType.SONY_MUSIC)
                 return new SonyMusic(conversionFilesPath, xlsName);
             if (documentType == ConversionType.SONY_MUSIC_PUBLISHING)
-                return new SonyMusicPublishing(conversionFilesPath);
+                return new SonyMusicPublishing(conversionFilesPath, xlsName);
             if (documentType == ConversionType.ABRAMUS_DIGITAL)
-                return new AbramusDigital(conversionFilesPath);
+                return new AbramusDigital(conversionFilesPath, xlsName);
 
             throw new ConversionTypeNotFound();
         } catch (IllegalArgumentException e){

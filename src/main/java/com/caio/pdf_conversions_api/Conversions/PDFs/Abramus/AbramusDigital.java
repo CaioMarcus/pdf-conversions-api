@@ -23,8 +23,8 @@ public class AbramusDigital extends BasePdfConversion {
 
     private final Map<AbramusDocType, Map<String, Double[]>> columnsCoordinates = new HashMap<>();
 
-    public AbramusDigital(String pdfPath) {
-        super(pdfPath, true);
+    public AbramusDigital(String pdfPath, String xlsName) {
+        super(pdfPath, xlsName, true);
 
         Map<String, Double[]> abramusDigitalLargePageCoordinates = new HashMap<>();
         abramusDigitalLargePageCoordinates.put("territorio", new Double[]{Helper.mmParaPx(4.96), Helper.mmParaPx(23.07)});

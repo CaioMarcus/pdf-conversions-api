@@ -39,8 +39,8 @@ public abstract class BasePdfConversion extends ConversionThread {
     protected double documentTotalSum;
     protected double acceptableDifferencePercentage = 5;
 
-    protected BasePdfConversion(String pdfPath, boolean isLineVerificationInFileBeginning) {
-        super(pdfPath);
+    protected BasePdfConversion(String pdfPath, String xlsName, boolean isLineVerificationInFileBeginning) {
+        super(pdfPath, xlsName);
         setUnwantedPageLines();
         setUnwantedLines();
         setIndexLine();
@@ -51,15 +51,6 @@ public abstract class BasePdfConversion extends ConversionThread {
 
     protected BasePdfConversion(String pdfPath, String xlsName) {
         super(pdfPath, xlsName);
-        setUnwantedPageLines();
-        setUnwantedLines();
-        setIndexLine();
-        setDateLine();
-        this.setVerificationLine();
-    }
-
-    protected BasePdfConversion(String pdfPath) {
-        super(pdfPath);
         setUnwantedPageLines();
         setUnwantedLines();
         setIndexLine();
