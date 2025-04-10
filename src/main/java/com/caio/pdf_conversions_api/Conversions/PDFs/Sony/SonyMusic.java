@@ -68,16 +68,16 @@ public class SonyMusic extends BasePdfConversion {
         String country = line.getStringFromPosition(mmParaPx(132.50), mmParaPx(17.10)).trim();
         String distibuted = line.getStringFromPosition(mmParaPx(151.78), mmParaPx(17.40)).trim();
 
-        String amount = Helper.corrigeSeparadorInt(correctNumber(lineSep[lineSep.length - 8]));
-        String royalties = Helper.corrigeSeparadorDouble(lineSep[lineSep.length - 3]);
-        String value = Helper.corrigeSeparadorDouble(correctNumber(lineSep[lineSep.length - 1]));
+        Double amount = Helper.ajustaNumero(correctNumber(lineSep[lineSep.length - 8]));
+        Double royalties = Helper.ajustaNumero(lineSep[lineSep.length - 3]);
+        Double value = Helper.ajustaNumero(correctNumber(lineSep[lineSep.length - 1]));
         String period = lineSep[0];
 
-        Object[] result = new String[]{
+        Object[] result = new Object[]{
                 productTitle, title, country, amount, royalties, distibuted, value, period, this.currentDate
         };
 
-        this.addResult(result, Helper.ajustaNumero(value));
+        this.addResult(result, value);
     }
 
     @Override
