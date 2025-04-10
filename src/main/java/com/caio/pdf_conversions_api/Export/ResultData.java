@@ -16,6 +16,8 @@ public class ResultData implements CsvExportable{
     private Object gross_revenue = "";
     private Object net_revenue = "";
     private Object isrc = "";
+    private Object iswc = "";
+    private Object cae = "";
     private Object owner = "";
     private Object owner_pseudonym = "";
     private Object percent_owned = "";
@@ -40,20 +42,22 @@ public class ResultData implements CsvExportable{
                 String.format(this.commaFormat, configuration),
                 String.format(this.commaFormat, country),
                 String.format(this.commaFormat, distributor),
-                String.valueOf(gross_revenue),
-                String.valueOf(net_revenue),
+                gross_revenue.equals("") ? String.format(this.commaFormat, gross_revenue) : String.valueOf(gross_revenue),
+                net_revenue.equals("") ? String.format(this.commaFormat, net_revenue) : String.valueOf(net_revenue),
                 String.format(this.commaFormat, isrc),
+                String.format(this.commaFormat, iswc),
+                String.format(this.commaFormat, cae),
                 String.format(this.commaFormat, owner),
                 String.format(this.commaFormat, owner_pseudonym),
-                String.valueOf(percent_owned),
+                percent_owned.equals("") ? String.format(this.commaFormat, percent_owned) : String.valueOf(percent_owned),
                 String.format(this.commaFormat, performance_event),
                 String.format(this.commaFormat, sales_date),
                 String.format(this.commaFormat, source),
                 String.format(this.commaFormat, track_artist),
                 String.format(this.commaFormat, track_name),
                 String.format(this.commaFormat, type),
-                String.valueOf(units),
-                String.valueOf(currency),
+                units.equals("") ? String.format(this.commaFormat, units) : String.valueOf(units),
+                currency.equals("") ? String.format(this.commaFormat, currency) : String.valueOf(currency),
                 String.format(this.commaFormat, statement_date),
                 String.format(this.commaFormat, path)
         );

@@ -1,24 +1,21 @@
 package com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico;
 
-
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
+import com.caio.pdf_conversions_api.Export.ResultData;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.*;
 
 import java.awt.geom.Rectangle2D;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class RelatorioAnalitico extends ConversionThread {
     int ultimoIndiceEditora;
@@ -34,37 +31,22 @@ public class RelatorioAnalitico extends ConversionThread {
         super(pdfPath, xlsName);
     }
 
-    @Override
-    public void run() {
-        try {
-            this.converteDados();
-            this.conversionProgress = 100f;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void setDatePatterns() {
-
-    }
-
-    private void converteDados()
+    public void retornaResultadosInteger()
             throws IOException {
         // Inicializando variáveis
-        File pasta = new File(pdfPath);
-        String[] arquivosNaPasta = pasta.list();
         String[] linhasTudo;
         String[] palavras;
-        String[] linhaConstruida = new String[0];
         String codigoObra;
         String codigoISWC;
-        String nomeObra;
+        // Inicializando map que guardará as linhas do documento
+        Map<Integer, String[]> Resultados = new LinkedHashMap<>();
+        Map<String, String[]> Editoras = new LinkedHashMap<>();
         // Inicializando a lista que guardará o Map
+        List<Map<Integer, String[]>> cedulas = new ArrayList<>();
 
         assert arquivosNaPasta != null;
-        for (int indiceArquivo = 0; indiceArquivo < arquivosNaPasta.length; indiceArquivo++) {
-            String nomeDoArquivo = arquivosNaPasta[indiceArquivo];
+        for (int fileIndex = 0; fileIndex < arquivosNaPasta.length; fileIndex++) {
+            String nomeDoArquivo = arquivosNaPasta[fileIndex];
             // Atribuindo valores a variáveis que vão ser utilizadas
             quantiaObras = 0;
 
@@ -72,7 +54,7 @@ public class RelatorioAnalitico extends ConversionThread {
             PDDocument reader = null;
             try {
                 // Recebendo o Documento
-                reader = Loader.loadPDF(Path.of(pdfPath, nomeDoArquivo).toFile());
+                reader = Loader.loadPDF(new File(this.pdfPath + nomeDoArquivo));
                 // Declarando os Strippers
                 PDFTextStripperByArea stripper = new PDFTextStripperByArea();
                 PDFTextStripperByArea stripper2 = new PDFTextStripperByArea();
@@ -93,7 +75,7 @@ public class RelatorioAnalitico extends ConversionThread {
                     rect0 = new Rectangle2D.Double(ConvDis(27.02), ConvDis(54.51), ConvDis(52.41), ConvDis(222.51)); // Editora
                     rect1 = new Rectangle2D.Double(ConvDis(50.00), ConvDis(54.51), ConvDis(77.00), ConvDis(222.51)); // Obra
                     // Adiciona o índice da planílha
-                    this.resultados.add(new String[]{"COD.OBRA", "ISWC", "TÍTULO PRINCIPAL DA OBRA", "COD.TITULAR", "TITULAR", "PSEUDONIMO", "COD.CAE", "ASSOCIAÇÃO", "CAT", "%", "DATA"});
+                    Resultados.put(Resultados.size(), new String[]{"COD.OBRA", "ISWC", "TÍTULO PRINCIPAL DA OBRA", "COD.TITULAR", "TITULAR", "PSEUDONIMO", "COD.CAE", "ASSOCIAÇÃO", "CAT", "%", "DATA"});
                     //Editoras.put(String.valueOf(Editoras.size()), new String[]{"COD.OBRA", "ISWC", "TÍTULO PRINCIPAL DA OBRA", "EDITORA", "LINK", "DATA"});
                     //rectData = new Rectangle2D.Double(convDis(118.78), convDis(16.81), convDis(76.29), convDis(20.00)); // Data;
                 } else if (tipo == 2) {
@@ -102,7 +84,7 @@ public class RelatorioAnalitico extends ConversionThread {
                     rect0 = new Rectangle2D.Double(ConvDis(27.02), ConvDis(32.28), ConvDis(52.41), ConvDis(249.80)); // Editora
                     rect1 = new Rectangle2D.Double(ConvDis(66.15), ConvDis(32.28), ConvDis(101.24), ConvDis(249.80)); // Obra
                     // Adiciona o índice da planílha
-                    this.resultados.add(new String[]{"COD.OBRA", "ISWC", "TÍTULO PRINCIPAL DA OBRA"});
+                    Resultados.put(Resultados.size(), new String[]{"COD.OBRA", "ISWC", "TÍTULO PRINCIPAL DA OBRA"});
                 } else {
                     // Monta os Retângulos
                     rectTudo = new Rectangle2D.Double(ConvDis(0.0), ConvDis(52.80), ConvDis(210.00), ConvDis(228.86)); // Tudo
@@ -110,7 +92,7 @@ public class RelatorioAnalitico extends ConversionThread {
                     rect1 = new Rectangle2D.Double(ConvDis(83.50), ConvDis(52.80), ConvDis(59.27), ConvDis(228.86)); // Obra
                     rect2 = new Rectangle2D.Double(ConvDis(25.30), ConvDis(52.80), ConvDis(56.34), ConvDis(228.86)); // Autores
                     // Adiciona o índice da planílha
-                    this.resultados.add(new String[]{"COD.OBRA", "ISRC/GRA", "TÍTULO PRINCIPAL DA OBRA", "AUTOR", "CLASSIFICAÇÃO", "PARTICIPAÇÃO"});
+                    Resultados.put(Resultados.size(), new String[]{"COD.OBRA", "ISRC/GRA", "TÍTULO PRINCIPAL DA OBRA", "AUTOR", "CLASSIFICAÇÃO", "PARTICIPAÇÃO"});
                 }
                 // Organiza os strippers pela posição do PDF, e adiciona as regioes dos retângulos a eles
                 stripper.setSortByPosition(true);
@@ -119,7 +101,6 @@ public class RelatorioAnalitico extends ConversionThread {
                 stripperObra.addRegion("rect1", rect1);
                 //stripper.addRegion("rectData", rectData);
                 stripper2.addRegion("rectTudo", rectTudo);
-
                 if (rect2 != null)
                     stripperObra.addRegion("rect2", rect2);
                 // Pega o numero de Paginas do arquivo
@@ -146,8 +127,8 @@ public class RelatorioAnalitico extends ConversionThread {
 
                         // Verifica se acabaram as obras do documento
                         if (linha.contains("CATEGORIAS AUTORAIS......:")) {
-                            this.resultados.add(new String[]{"", "", "", "", "", "", "", "", "", "", ""});
-                            this.resultados.add(new String[]{"", "", "", "", "", "Total Obras Computadas: ", "", "", "", "", String.valueOf(quantiaObras)});
+                            Resultados.put(Resultados.size(), new String[]{"", "", "", "", "", "", "", "", "", "", ""});
+                            Resultados.put(Resultados.size(), new String[]{"", "", "", "", "", "Total Obras Computadas: ", "", "", "", "", String.valueOf(quantiaObras)});
                             break;
                         }
 
@@ -156,10 +137,29 @@ public class RelatorioAnalitico extends ConversionThread {
                                 arrayObraAtual = retornaArrayLinha(linha, tipo);
                                 quantiaObras++;
                                 classificacaoConexo = linhasTudo[++indicelinhas];
-                                this.resultados.add(new String[]{arrayObraAtual[0], arrayObraAtual[1], arrayObraAtual[2], "", classificacaoConexo, ""});
+//                                Resultados.put(Resultados.size(), new String[]{
+//                                        arrayObraAtual[0],
+//                                        arrayObraAtual[1],
+//                                        arrayObraAtual[2],
+//                                        classificacaoConexo
+//                                });
                             } else {
                                 String autor = Helper.achaTermoEmComum(linha, linhasAutores, true);
-                                this.resultados.add(new String[]{"", "", "", autor, "", palavras[palavras.length - 1]});
+
+                                ResultData resultData = new ResultData();
+                                resultData.setCatalog_id(arrayObraAtual[0]);
+                                resultData.setIsrc(arrayObraAtual[1]);
+                                resultData.setTrack_name(arrayObraAtual[2]);
+                                resultData.setPerformance_event(arrayObraAtual[2]);
+                                resultData.setOwner(autor);
+                                resultData.setPercent_owned(Helper.ajustaNumero(palavras[palavras.length - 1]));
+                                resultData.setPath(nomeDoArquivo);
+
+                                this.resultadosResultData.add(resultData);
+
+                                /*Resultados.put(Resultados.size(), new String[]{
+                                        "", "", "",
+                                        autor, "", palavras[palavras.length - 1]});*/
                             }
                         } else if (tipo == 2) {
                             if (verificaLinhaObra(palavras, tipo)) {
@@ -168,12 +168,22 @@ public class RelatorioAnalitico extends ConversionThread {
                                 if (!codigoISWC.matches("T\\d{10}")) {
                                     codigoISWC = "";
                                 }
-                                this.resultados.add(new String[]{codigoObra, codigoISWC,
+
+                                ResultData resultData = new ResultData();
+                                resultData.setIswc(codigoISWC);
+                                resultData.setCatalog_id(codigoObra);
+                                resultData.setTrack_name(linha.replace(String.format("%s %s %s", palavras[0], codigoObra, codigoISWC), "")
+                                        .replace(String.format(" %s", palavras[palavras.length - 1]), "")
+                                        .trim());
+                                resultData.setPath(nomeDoArquivo);
+                                this.resultadosResultData.add(resultData);
+
+                                /*Resultados.put(Resultados.size(), new String[]{ codigoObra, codigoISWC,
                                         linha
                                                 .replace(String.format("%s %s %s", palavras[0], codigoObra, codigoISWC), "")
                                                 .replace(String.format(" %s", palavras[palavras.length - 1]), "")
                                                 .trim()
-                                });
+                                });*/
                             }
                         } else {
                             // Verifica se a linha atual é uma obra
@@ -181,9 +191,15 @@ public class RelatorioAnalitico extends ConversionThread {
                                 arrayObraAtual = retornaArrayLinha(linha, tipo);
                                 quantiaObras++;
                             } else {
-                                this.resultados.add(montaLinha(linha));
+                                ResultData result = montaLinha(linha);
+                                result.setPath(nomeDoArquivo);
+                                this.resultadosResultData.add(result);
+//                                Resultados.put(Resultados.size(), );
                             }
                         }
+
+
+
                         /*else if (fazerEditora && verificaLinhaEditora(palavras, tipo)) {
 
                             if (editora != null) {
@@ -194,17 +210,20 @@ public class RelatorioAnalitico extends ConversionThread {
                         }*/
                     }
                 }
-                setConversionProgress(indiceArquivo);
                 // Fecha o documento
                 reader.close();
+                setConversionProgress(fileIndex);
             } catch (Exception e) {
                 if (reader != null) reader.close();
                 throw e;
             }
         }
+        // Adiciona o map com os dados na lista de cedulas
+        cedulas.add(Resultados);
+        //cedulas.add(Editoras);
     }
 
-    private String[] montaLinha(String linha){
+    private ResultData montaLinha(String linha){
         boolean chegouCae = false;
 
         int indexLinha = 1;
@@ -262,7 +281,35 @@ public class RelatorioAnalitico extends ConversionThread {
             pseudonimo = new StringBuilder();
         }
 
-        return new String[] {arrayObraAtual[0], arrayObraAtual[1], arrayObraAtual[2], codigo, editora, pseudonimo.toString(), CAE, associacao.toString(), tipoObra, porcentagem, arrayObraAtual[3]};
+        ResultData resultData = new ResultData();
+
+        resultData.setPercent_owned(Helper.ajustaNumero(porcentagem));
+        resultData.setCatalog_id(arrayObraAtual[0]);
+        resultData.setOwner(editora);
+        resultData.setOwner_pseudonym(pseudonimo.toString());
+        resultData.setTrack_name(arrayObraAtual[2]);
+        resultData.setSource(associacao.toString());
+        resultData.setIswc(arrayObraAtual[1]);
+        resultData.setCae(CAE);
+        resultData.setStatement_date(arrayObraAtual[3]);
+        resultData.setOwner_id(codigo);
+        resultData.setType(tipoObra);
+
+        return resultData;
+
+        /*return new String[] {
+                arrayObraAtual[0],
+                arrayObraAtual[1],
+                arrayObraAtual[2],
+                codigo,
+                editora,
+                pseudonimo.toString(),
+                CAE,
+                associacao.toString(),
+                tipoObra,
+                porcentagem,
+                arrayObraAtual[3]
+        };*/
     }
 
     String retornaEditora(String linhaAtual) {
@@ -413,252 +460,16 @@ public class RelatorioAnalitico extends ConversionThread {
         return false;
     }
 
-    public void formataExportaPlanilhaIntegerMap(List<Map<Integer, String[]>> entrada, String nomeSaida,
-                                       String diretorioSaida, boolean fazerEditora)
-            throws IOException, ParseException {
-
-        Map<Integer, String[]> planilha = entrada.get(0);
-        int tam = planilha.get(0).length;
-
-        Map<Integer, String[]> planilhaEdit = null;
-        int tamEdit = 0;
-
-        if (fazerEditora) {
-            planilhaEdit = entrada.get(1);
-            try {
-                tamEdit = planilhaEdit.get(0).length;
-            } catch(NullPointerException e){
-                planilhaEdit = null;
-                fazerEditora = false;
-            }
-        }
-
-        // Cria planilha
-        @SuppressWarnings("resource")
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        XSSFSheet spreadsheet = workbook.createSheet("PDFs");
-        //XSSFSheet spreadsheetEdit = workbook.createSheet("PDFs + Editoras");
-        XSSFRow row;
-
-        // Estilo todas as cedulas
-        XSSFCellStyle style = workbook.createCellStyle();
-        XSSFFont fonte = workbook.createFont();
-        fonte.setFontHeightInPoints((short) 15);
-        style.setFont(fonte);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-
-        // Estilo cedulas do indice
-        XSSFCellStyle indice = workbook.createCellStyle();
-        XSSFFont negrito = workbook.createFont();
-        indice.setAlignment(HorizontalAlignment.CENTER);
-        negrito.setFontHeightInPoints((short) 15);
-        negrito.setBold(true);
-        indice.setFont(negrito);
-        indice.setFillForegroundColor(IndexedColors.GREY_40_PERCENT.getIndex());
-        indice.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        indice.setBorderLeft(BorderStyle.THIN);
-        indice.setBorderRight(BorderStyle.THIN);
-
-        // Estilo cedulas Data
-        XSSFCellStyle data = workbook.createCellStyle();
-        CreationHelper cr = workbook.getCreationHelper();
-        data.setDataFormat(cr.createDataFormat().getFormat("dd/mm/yyyy"));
-        data.setFont(fonte);
-        style.setFont(fonte);
-        data.setAlignment(HorizontalAlignment.RIGHT);
-        data.setBorderLeft(BorderStyle.THIN);
-        data.setBorderRight(BorderStyle.THIN);
-
-        // Parte Funcional
-
-        // Transforma os valores dos objetos em cédulas
-        Set<Integer> keyid = planilha.keySet();
-        int rowid = 0;
-        System.out.println("Adicionando Elementos...");
-
-        for (Integer key : keyid) {
-            row = spreadsheet.createRow(rowid++);
-            String[] objectArr = planilha.get(key);
-            int cellid = 0;
-            for (String obj : objectArr) {
-                Cell cell = row.createCell(cellid++);
-                if (Helper.verificaData(obj)){
-                    cell.setCellValue(new SimpleDateFormat("dd/MM/yyyy").parse(obj));
-                    cell.setCellStyle(data);
-                } else if (objectArr[0].equals("COD.OBRA") || objectArr[0].equals("COD.ECAD")) {
-                    cell.setCellValue(obj);
-                    cell.setCellStyle(indice);
-                } else {
-                    cell.setCellValue(obj);
-                    cell.setCellStyle(style);
-                }
-            }
-        }
-        /*
-        if (fazerEditora) {
-            Set<Integer> keyidEdit = planilhaEdit.keySet();
-            int rowidEdit = 0;
-            System.out.println("Adicionando Elementos...");
-
-            for (Integer key : keyidEdit) {
-                row = spreadsheetEdit.createRow(rowidEdit++);
-                String[] objectArr = planilhaEdit.get(key);
-                int cellid = 0;
-                for (String obj : objectArr) {
-                    Cell cell = row.createCell(cellid++);
-                    if (Helper.verificaData(obj)) {
-                        cell.setCellValue(new SimpleDateFormat("dd/MM/yyyy").parse(obj));
-                        cell.setCellStyle(data);
-                    } else if (objectArr[0].equals("COD.OBRA") || objectArr[0].equals("COD.ECAD")) {
-                        cell.setCellValue(obj);
-                        cell.setCellStyle(indice);
-                    } else {
-                        cell.setCellValue(obj);
-                        cell.setCellStyle(style);
-                    }
-                }
-            }
-            for (int i = 0; i < tamEdit + 1; i++) {
-                spreadsheetEdit.autoSizeColumn(i);
-            }
-        }
-        */
-
-        System.out.println("Terminando ajustes...");
-
-        for (int i = 0; i < tam + 1; i++) {
-            spreadsheet.autoSizeColumn(i);
-        }
-
-        // Exporta o arquivo
-        FileOutputStream out = new FileOutputStream(diretorioSaida + nomeSaida + ".xlsx");
-        workbook.write(out);
-        out.close();
-        System.out.println("Conversão concluída com êxito. Nome do arquivo salvo: " + nomeSaida + ".xlsx");
+    @Override
+    public void setDatePatterns() {
     }
 
-    public void formataExportaPlanilha(List<Map<String, String[]>> entrada, String nomeSaida,
-                                              String diretorioSaida, boolean fazerEditora)
-            throws IOException, ParseException {
-
-        Map<String, String[]> planilha = entrada.get(0);
-        int tam = planilha.get("0").length;
-
-        Map<String, String[]> planilhaEdit = null;
-        int tamEdit = 0;
-
-        if (fazerEditora) {
-            planilhaEdit = entrada.get(1);
-            try {
-                tamEdit = planilhaEdit.get("0").length;
-            } catch(NullPointerException e){
-                planilhaEdit = null;
-                fazerEditora = false;
-            }
+    @Override
+    public void run() {
+        try {
+            this.retornaResultadosInteger();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        // Cria planilha
-        @SuppressWarnings("resource")
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        XSSFSheet spreadsheet = workbook.createSheet("PDFs");
-        XSSFSheet spreadsheetEdit = workbook.createSheet("PDFs + Editoras");
-        XSSFRow row;
-
-        // Estilo todas as cedulas
-        XSSFCellStyle style = workbook.createCellStyle();
-        XSSFFont fonte = workbook.createFont();
-        fonte.setFontHeightInPoints((short) 15);
-        style.setFont(fonte);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-
-        // Estilo cedulas do indice
-        XSSFCellStyle indice = workbook.createCellStyle();
-        XSSFFont negrito = workbook.createFont();
-        indice.setAlignment(HorizontalAlignment.CENTER);
-        negrito.setFontHeightInPoints((short) 15);
-        negrito.setBold(true);
-        indice.setFont(negrito);
-        indice.setFillForegroundColor(IndexedColors.GREY_40_PERCENT.getIndex());
-        indice.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        indice.setBorderLeft(BorderStyle.THIN);
-        indice.setBorderRight(BorderStyle.THIN);
-
-        // Estilo cedulas Data
-        XSSFCellStyle data = workbook.createCellStyle();
-        CreationHelper cr = workbook.getCreationHelper();
-        data.setDataFormat(cr.createDataFormat().getFormat("dd/mm/yyyy"));
-        data.setFont(fonte);
-        style.setFont(fonte);
-        data.setAlignment(HorizontalAlignment.RIGHT);
-        data.setBorderLeft(BorderStyle.THIN);
-        data.setBorderRight(BorderStyle.THIN);
-
-        // Parte Funcional
-
-        // Transforma os valores dos objetos em cédulas
-        Set<String> keyid = planilha.keySet();
-        int rowid = 0;
-        System.out.println("Adicionando Elementos...");
-
-        for (String key : keyid) {
-            row = spreadsheet.createRow(rowid++);
-            String[] objectArr = planilha.get(key);
-            int cellid = 0;
-            for (String obj : objectArr) {
-                Cell cell = row.createCell(cellid++);
-                if (Helper.verificaData(obj)){
-                    cell.setCellValue(new SimpleDateFormat("dd/MM/yyyy").parse(obj));
-                    cell.setCellStyle(data);
-                } else if (objectArr[0].equals("COD.OBRA") || objectArr[0].equals("COD.ECAD")) {
-                    cell.setCellValue(obj);
-                    cell.setCellStyle(indice);
-                } else {
-                    cell.setCellValue(obj);
-                    cell.setCellStyle(style);
-                }
-            }
-        }
-
-        if (fazerEditora) {
-            Set<String> keyidEdit = planilhaEdit.keySet();
-            int rowidEdit = 0;
-            System.out.println("Adicionando Elementos...");
-
-            for (String key : keyidEdit) {
-                row = spreadsheetEdit.createRow(rowidEdit++);
-                String[] objectArr = planilhaEdit.get(key);
-                int cellid = 0;
-                for (String obj : objectArr) {
-                    Cell cell = row.createCell(cellid++);
-                    if (Helper.verificaData(obj)) {
-                        cell.setCellValue(new SimpleDateFormat("dd/MM/yyyy").parse(obj));
-                        cell.setCellStyle(data);
-                    } else if (objectArr[0].equals("COD.OBRA") || objectArr[0].equals("COD.ECAD")) {
-                        cell.setCellValue(obj);
-                        cell.setCellStyle(indice);
-                    } else {
-                        cell.setCellValue(obj);
-                        cell.setCellStyle(style);
-                    }
-                }
-            }
-            for (int i = 0; i < tamEdit + 1; i++) {
-                spreadsheetEdit.autoSizeColumn(i);
-            }
-        }
-        System.out.println("Terminando ajustes...");
-
-        for (int i = 0; i < tam + 1; i++) {
-            spreadsheet.autoSizeColumn(i);
-        }
-
-        // Exporta o arquivo
-        FileOutputStream out = new FileOutputStream(diretorioSaida + nomeSaida + ".xlsx");
-        workbook.write(out);
-        out.close();
-        System.out.println("Conversão concluída com êxito. Nome do arquivo salvo: " + nomeSaida + ".xlsx");
     }
-
 }

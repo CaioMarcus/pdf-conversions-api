@@ -1,5 +1,6 @@
 package com.caio.pdf_conversions_api.Conversions.PDFs.Warner;
 
+import com.caio.pdf_conversions_api.Conversions.ConversionThread;
 import com.caio.pdf_conversions_api.Export.ResultData;
 import com.caio.pdf_conversions_api.Export.VerificationData;
 import com.caio.pdf_conversions_api.Helpers.ConversionDateParser;
@@ -21,15 +22,16 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class Warner extends ConversionDateParser {
+public class Warner extends ConversionThread {
     private String editoraAtual = "warner";
     private String[] titulo = new String[]
                     {"obra", "tipo", /*"Cód. de Id.",*/ "periodo_fato_gerador",
                     "sub_fonte", "territorio", "fonte",
                     "unidade", "royalty_total", "percentual_titular", "royalty_titular", "editora_atual", "periodo_royalty"};
 
-    private List<ResultData> resultados;
-    private List<VerificationData> verificationData;
+    public Warner(String pdfPath, String xlsName) {
+        super(pdfPath, xlsName);
+    }
 
     @Override
     public void setDatePatterns() {
@@ -40,25 +42,16 @@ public class Warner extends ConversionDateParser {
         };
     }
 
-    public void retornaResultados(String PDFpath, File pasta) throws IOException {
+    public void retornaResultados() throws IOException {
 
         String[] meses = new String[] { "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto",
                 "Setembro", "Outubro", "Novembro", "Dezembro" };
 
-        String[] arquivosNaPasta = pasta.list();
 
-        Map<String, String[]> Resultados = new LinkedHashMap<>();
-        Resultados.put("0", titulo);
-        
-        Map<String, String[]> verifica = new LinkedHashMap<>();
-
-        this.resultados = new ArrayList<>();
-        this.verificationData = new ArrayList<>();
-
-        assert arquivosNaPasta != null;
-        for (String nomeDoArquivo : arquivosNaPasta) {
+        for (int fileIndex = 0; fileIndex < arquivosNaPasta.length; fileIndex++) {
+            String nomeDoArquivo = arquivosNaPasta[fileIndex];
             System.out.println("Lendo Arquivo " + nomeDoArquivo);
-            PDDocument reader = Loader.loadPDF(Path.of(PDFpath, nomeDoArquivo).toFile());
+            PDDocument reader = Loader.loadPDF(Path.of(this.pdfPath, nomeDoArquivo).toFile());
 
             PDFTextStripperByArea stripper = new PDFTextStripperByArea();
             PDFTextStripperByArea stripper2 = new PDFTextStripperByArea();
@@ -76,7 +69,7 @@ public class Warner extends ConversionDateParser {
             Rectangle2D rect9 = new Rectangle2D.Double(0, 68.2, 840, 540.00);
             //Data
             Rectangle2D rect10 = new Rectangle2D.Double(137.3, 26.98, 175.8, 14);
-            
+
             stripper.setSortByPosition(true);
             stripper2.setSortByPosition(true);
             stripper3.setSortByPosition(true);
@@ -93,7 +86,7 @@ public class Warner extends ConversionDateParser {
             stripper3.addRegion("rect9", rect9);
             //Data
             stripper.addRegion("rect10", rect10);
-            
+
             String obra = "";
             String subTotAntes = "NadaAinda";
             String obraAntiga = "NenhumaObraDefinida";
@@ -116,7 +109,7 @@ public class Warner extends ConversionDateParser {
                 stripper.extractRegions(reader.getPage(i));
                 stripper2.extractRegions(reader.getPage(i));
                 stripper3.extractRegions(reader.getPage(i));
-                
+
                 String[] obras = stripper.getTextForRegion("rect1").split(System.lineSeparator());
                 String[] provedor = stripper.getTextForRegion("rect2").split(System.lineSeparator());
                 String[] pais = stripper.getTextForRegion("rect3").split(System.lineSeparator());
@@ -127,164 +120,171 @@ public class Warner extends ConversionDateParser {
                 String[] periodo = stripper2.getTextForRegion("rect8").split(System.lineSeparator());
                 String[] tudo = stripper3.getTextForRegion("rect9").split(System.lineSeparator());
                 data = convertDate(stripper.getTextForRegion("rect10").replace(System.lineSeparator(), ""));
-                
+
                 for (int j = 0; j < resto.length; j++) {
-                	if (obras.length == 0 || tudo[0].contains("Impostos Do Exterior") || tudo[0].contains("Contrato") || provedor[0].contains("Período:")
-                            || tudo[0].contains("Impostos") || tudo[1].contains("Imposto De Renda") ||  obras[obras.length - 1].equals("WarnerChappell.com")) {
-                		break;
-                	}
-                	
-                	String[] restoSep = resto[j].split(" ");
+                    if (obras.length == 0 || tudo[0].contains("Impostos Do Exterior") || tudo[0].contains("Contrato") || provedor[0].contains("Período:")
+                            || tudo[0].contains("Impostos") || tudo[1].contains("Imposto De Renda") || obras[obras.length - 1].equals("WarnerChappell.com")) {
+                        break;
+                    }
+
+                    String[] restoSep = resto[j].split(" ");
 
                     if (resto[j].contains("Sub-total")) {
-                    	while (!tudo[indiceTudo].contains(resto[j])) {
-                    		indiceTudo++;
-                    	}
-                    	boolean meioDaObra = false;
-                    	int indiceObraAnt = indiceObra;
+                        while (!tudo[indiceTudo].contains(resto[j])) {
+                            indiceTudo++;
+                        }
+                        boolean meioDaObra = false;
+                        int indiceObraAnt = indiceObra;
 
-                    	if(pagInicial) {
-                    	    indiceObra += 2;
-                    	    pagInicial = false;
+                        if (pagInicial) {
+                            indiceObra += 2;
+                            pagInicial = false;
                         }
                         String proximaLinhaObra = obras[indiceObra + 1];
-                    	while (!verificaObra(obras[indiceObra]) || proximaLinhaObra.contains("Contrato")) {
-                    		indiceObra++;
-                    		if (indiceObra < obras.length - 1)
+                        while (!verificaObra(obras[indiceObra]) || proximaLinhaObra.contains("Contrato")) {
+                            indiceObra++;
+                            if (indiceObra < obras.length - 1)
                                 proximaLinhaObra = obras[indiceObra + 1];
-                    		else
-                    		    proximaLinhaObra = "";
-                    		if (indiceObra == obras.length - 1 && !tudo[indiceTudo].contains(obras[indiceObra])) {
-                    			meioDaObra = true;
-                    			indiceObra = indiceObraAnt;
-                    			break;
-                    		}
-                    	}
-                    	if (meioDaObra) {
-                    		obra = obras[indiceObra] + " " + obras[indiceObra + 1];
-                    		indiceObra += 2;
-                    	} else {
-                    	    if (verificaMaiuscula(proximaLinhaObra)) {
+                            else
+                                proximaLinhaObra = "";
+                            if (indiceObra == obras.length - 1 && !tudo[indiceTudo].contains(obras[indiceObra])) {
+                                meioDaObra = true;
+                                indiceObra = indiceObraAnt;
+                                break;
+                            }
+                        }
+                        if (meioDaObra) {
+                            obra = obras[indiceObra] + " " + obras[indiceObra + 1];
+                            indiceObra += 2;
+                        } else {
+                            if (verificaMaiuscula(proximaLinhaObra)) {
                                 obra = obras[indiceObra] + " " + obras[indiceObra + 1];
                                 indiceObra++;
                             } else {
                                 obra = obras[indiceObra];
                             }
-                    	}
-                    	
-                    	if (subTotAntes.equals("NadaAinda")) {
-                    		subTotAntes = restoSep[restoSep.length - 1];
-                    		obraAntiga = obra;
-                    		
-                    	} else if (!obraAntiga.equals(obra)) {
-                    		double valorSubTot = Double.parseDouble(Helper.corrigeSeparadorDouble(subTotAntes));
-                    		somatorioSub += valorSubTot;
-                    		
-                    		if (Math.round(somatorio) != Math.round(valorSubTot)) {
-                        		verifica.put(String.valueOf(verifica.size()), new String[] 
-                        				{"Não Bateu", obraAntiga, "Pagina " + (i + 1), String.valueOf(valorSubTot - somatorio), nomeDoArquivo });
-                        	} else {
-                                verifica.put(String.valueOf(verifica.size()), new String[]
-                                        {"Bateu", obraAntiga, "Total: ", String.valueOf(somatorio), "Informado: ", String.valueOf(valorSubTot), nomeDoArquivo});
+                        }
+
+                        if (subTotAntes.equals("NadaAinda")) {
+                            subTotAntes = restoSep[restoSep.length - 1];
+                            obraAntiga = obra;
+
+                        } else if (!obraAntiga.equals(obra)) {
+                            double valorSubTot = Double.parseDouble(Helper.corrigeSeparadorDouble(subTotAntes));
+                            somatorioSub += valorSubTot;
+
+                            VerificationData verificationData = new VerificationData();
+
+                            if (Math.round(somatorio) != Math.round(valorSubTot)) {
+                                verificationData.setStatus("Arquivo Não Bateu");
+                            } else {
+                                verificationData.setStatus("Arquivo Bateu");
                             }
-                    		subTotAntes =  restoSep[restoSep.length - 1];
-                    		somatorio = 0.0;
-                    		obraAntiga = obra;
-                    	}
-                    	if (j < resto.length - 2)
-                    	    j += 2;
-                    	else
-                    	    j++;
+                            verificationData.setInformed_total(valorSubTot);
+                            verificationData.setSummed_total(somatorio);
+                            verificationData.setDifference(valorSubTot - somatorio);
+                            verificationData.setDocument(nomeDoArquivo);
+                            verificationData.setDocument_date(data);
+                            this.verificacaoResultData.add(verificationData);
+
+                            subTotAntes = restoSep[restoSep.length - 1];
+                            somatorio = 0.0;
+                            obraAntiga = obra;
+                        }
+                        if (j < resto.length - 2)
+                            j += 2;
+                        else
+                            j++;
                     }
-                    
+
                     restoSep = resto[j].split(" ");
-                    
+
                     if (restoSep[restoSep.length - 1].matches("-?[0-9.]+,-?[0-9]+") && restoSep.length > 2 && !resto[j].contains("Total Do")) {
-                    	boolean tudoAtt = false;
-                    	boolean provedorCalib = false;
-                    	boolean paisCalib = false;
-                    	boolean fontesCalib = false;
-                    	boolean receitaCalib = false;
-                    	boolean codigoCalib = false;
-                    	boolean periodoCalib = false;
-                    	boolean calib = false;
-                    	boolean fonteVazia = false;
-                    	
-                    	int indiceAntFonte = indiceFontes;
-                    	while (!calib) {
-                    		
-                    		if (tudo[indiceTudo].contains(resto[j]) && !tudoAtt && tudo[indiceTudo].split(" ").length > 4) {
-                    			tudoAtt = true;                   		
-                    		} else if (!tudoAtt) {
-                    			indiceTudo++;
-                    		}
-                    		
-                			if (tudoAtt) {
-                    			if (tudo[indiceTudo].contains(provedor[indiceProvedor]) && !provedorCalib) {
-                    				provedorCalib = true;
-                    			} else if (!provedorCalib) {
-                    				indiceProvedor++;
-                    			}
-                    			if (tudo[indiceTudo].contains(pais[indicePais]) && !paisCalib && pais[indicePais].length() > 3) {
-                    				paisCalib = true;
-                    			} else if (!paisCalib) {
-                    				indicePais++;
-                    			}
-                    			if (tudo[indiceTudo].contains(fontes[indiceFontes]) && !fontesCalib && fontes[indiceFontes].length() > 1) {
-                    				fontesCalib = true;                    				
-                    			} else if (!fontesCalib) {
-                    				if (indiceFontes == fontes.length - 1) {
-                    					fonteVazia = true;
-                    					fontesCalib = true;
-                    				} else {
-                    					indiceFontes++;                    					
-                    				}
-                    			}
-                    			if (tudo[indiceTudo].contains(tipoReceita[indiceReceita]) && !receitaCalib && Arrays.stream(pais).noneMatch(tipoReceita[indiceReceita]::equals)
-                                && !tipoReceita[indiceReceita].equals(obra)) {
-                    				receitaCalib = true;
-                    			} else if (!receitaCalib) {
-                					if (tipoReceita[indiceReceita].contains(obra)) {
-                    					indiceReceita += 2;
-                    				} else {
-                    					indiceReceita++;
-                    				}
-                    			}
+                        boolean tudoAtt = false;
+                        boolean provedorCalib = false;
+                        boolean paisCalib = false;
+                        boolean fontesCalib = false;
+                        boolean receitaCalib = false;
+                        boolean codigoCalib = false;
+                        boolean periodoCalib = false;
+                        boolean calib = false;
+                        boolean fonteVazia = false;
+
+                        int indiceAntFonte = indiceFontes;
+                        while (!calib) {
+
+                            if (tudo[indiceTudo].contains(resto[j]) && !tudoAtt && tudo[indiceTudo].split(" ").length > 4) {
+                                tudoAtt = true;
+                            } else if (!tudoAtt) {
+                                indiceTudo++;
+                            }
+
+                            if (tudoAtt) {
+                                if (tudo[indiceTudo].contains(provedor[indiceProvedor]) && !provedorCalib) {
+                                    provedorCalib = true;
+                                } else if (!provedorCalib) {
+                                    indiceProvedor++;
+                                }
+                                if (tudo[indiceTudo].contains(pais[indicePais]) && !paisCalib && pais[indicePais].length() > 3) {
+                                    paisCalib = true;
+                                } else if (!paisCalib) {
+                                    indicePais++;
+                                }
+                                if (tudo[indiceTudo].contains(fontes[indiceFontes]) && !fontesCalib && fontes[indiceFontes].length() > 1) {
+                                    fontesCalib = true;
+                                } else if (!fontesCalib) {
+                                    if (indiceFontes == fontes.length - 1) {
+                                        fonteVazia = true;
+                                        fontesCalib = true;
+                                    } else {
+                                        indiceFontes++;
+                                    }
+                                }
+                                if (tudo[indiceTudo].contains(tipoReceita[indiceReceita]) && !receitaCalib && Arrays.stream(pais).noneMatch(tipoReceita[indiceReceita]::equals)
+                                        && !tipoReceita[indiceReceita].equals(obra)) {
+                                    receitaCalib = true;
+                                } else if (!receitaCalib) {
+                                    if (tipoReceita[indiceReceita].contains(obra)) {
+                                        indiceReceita += 2;
+                                    } else {
+                                        indiceReceita++;
+                                    }
+                                }
 //                    			if (tudo[indiceTudo].contains(codigo[indiceCodigo]) && !codigoCalib && codigo[indiceCodigo].matches("[0-9]+")) {
 //                    				codigoCalib = true;
 //                    			} else if (!codigoCalib) {
 //                    				indiceCodigo++;
 //                    			}
-                    			if (tudo[indiceTudo].contains(periodo[indicePeriodo]) && !periodoCalib && verificaData(periodo[indicePeriodo], "/")) {
-                    				periodoCalib = true;
-                    			} else if (!periodoCalib) {
-                    				indicePeriodo++;
-                    			}
-                			}
-                		
-                    		if (provedorCalib && paisCalib && fontesCalib && receitaCalib && /*codigoCalib &&*/ periodoCalib) {
-                    			calib = true;
-                    		}
-                    		
-                    	}
-                    	String fontesEntrar;
-                    	String receitaEntrar = tipoReceita[indiceReceita];
+                                if (tudo[indiceTudo].contains(periodo[indicePeriodo]) && !periodoCalib && verificaData(periodo[indicePeriodo], "/")) {
+                                    periodoCalib = true;
+                                } else if (!periodoCalib) {
+                                    indicePeriodo++;
+                                }
+                            }
+
+                            if (provedorCalib && paisCalib && fontesCalib && receitaCalib && /*codigoCalib &&*/ periodoCalib) {
+                                calib = true;
+                            }
+
+                        }
+                        String fontesEntrar;
+                        String receitaEntrar = tipoReceita[indiceReceita];
 //                    	String codigoEntrar = codigo[indiceCodigo];
-                    	String periodoEntrar = periodo[indicePeriodo];
-                    	String provedorEntrar = provedor[indiceProvedor];
-                    	String paisEntrar = pais[indicePais];
-                    	if (fonteVazia) {
-                    		fontesEntrar = " ";
-                    		indiceFontes = indiceAntFonte;
-                    	} else {
-                    		fontesEntrar = fontes[indiceFontes];                    		
-                    	}
-                    	String uni = restoSep[restoSep.length - 4];
-                    	String valRec = restoSep[restoSep.length - 3];
-                    	String taxa = restoSep[restoSep.length - 2];
-                    	String valPag = restoSep[restoSep.length - 1];
-                    	if (receitaEntrar.equals("Italy")) {
-                    	    System.out.println("Porra");
+                        String periodoEntrar = periodo[indicePeriodo];
+                        String provedorEntrar = provedor[indiceProvedor];
+                        String paisEntrar = pais[indicePais];
+                        if (fonteVazia) {
+                            fontesEntrar = " ";
+                            indiceFontes = indiceAntFonte;
+                        } else {
+                            fontesEntrar = fontes[indiceFontes];
+                        }
+                        String uni = restoSep[restoSep.length - 4];
+                        String valRec = restoSep[restoSep.length - 3];
+                        String taxa = restoSep[restoSep.length - 2];
+                        String valPag = restoSep[restoSep.length - 1];
+                        if (receitaEntrar.equals("Italy")) {
+                            System.out.println("Porra");
                         }
                         ResultData resultData = new ResultData();
 
@@ -304,7 +304,7 @@ public class Warner extends ConversionDateParser {
                         resultData.setPath(nomeDoArquivo);
                         //TODO: Set Artist
 
-                        resultados.add(resultData);
+                        resultadosResultData.add(resultData);
 
                     	/*Resultados.put(String.valueOf(Resultados.size()), new String[]{
                                 obra.replace("-", ""),
@@ -317,9 +317,9 @@ public class Warner extends ConversionDateParser {
                                 uni,
                                 valRec,
                                 taxa, valPag, editoraAtual, data});*/
-                    	
-                    	somatorio += Double.parseDouble(Helper.corrigeSeparadorDouble(valPag));
-                    	indiceObra++;
+
+                        somatorio += Double.parseDouble(Helper.corrigeSeparadorDouble(valPag));
+                        indiceObra++;
 
                     } else if (resto[j].contains("Total Do")) {
                         pagInicial = true;
@@ -330,12 +330,8 @@ public class Warner extends ConversionDateParser {
                             VerificationData verificationData = new VerificationData();
 
                             if (Math.round(somatorio) != Math.round(valorSubTot)) {
-                                verifica.put(String.valueOf(verifica.size()), new String[]
-                                        {"Arquivo Não Bateu", "Total: ", String.valueOf(somatorio), "Informado: ", String.valueOf(valorSubTot), nomeDoArquivo });
                                 verificationData.setStatus("Arquivo Não Bateu");
                             } else {
-                                verifica.put(String.valueOf(verifica.size()), new String[]
-                                        {"Arquivo Bateu", "Total: ", String.valueOf(somatorio), "Informado: ", String.valueOf(valorSubTot), nomeDoArquivo });
                                 verificationData.setStatus("Arquivo Bateu");
                             }
                             verificationData.setInformed_total(valorSubTot);
@@ -343,14 +339,14 @@ public class Warner extends ConversionDateParser {
                             verificationData.setDifference(valorSubTot - somatorio);
                             verificationData.setDocument(nomeDoArquivo);
                             verificationData.setDocument_date(data);
-                            this.verificationData.add(verificationData);
+                            this.verificacaoResultData.add(verificationData);
                         }
                     }
                 }
             }
             reader.close();
+            this.setConversionProgress(fileIndex);
         }
-        System.out.println("Validando Dados");
     }
     public void formataExportaPlanilhaUn(List<Map<String, String[]>> entrada, String nomeSaida,
                                              String diretorioSaida, boolean fazerResumo, boolean fazerVerificacao)
@@ -655,19 +651,12 @@ public class Warner extends ConversionDateParser {
         return ajustado.toArray(String[]::new);
     }
 
-    public List<ResultData> getResultados() {
-        return resultados;
-    }
-
-    public void setResultados(List<ResultData> resultados) {
-        this.resultados = resultados;
-    }
-
-    public List<VerificationData> getVerificationData() {
-        return verificationData;
-    }
-
-    public void setVerificationData(List<VerificationData> verificationData) {
-        this.verificationData = verificationData;
+    @Override
+    public void run() {
+        try {
+            this.retornaResultados();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

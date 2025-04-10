@@ -42,6 +42,15 @@ public class OutrasEditorasPreProcessor {
         columnsConverter.put("Repasse", OutrasEditorasColumn.REPASSE);
         columnsConverter.put("Autor", OutrasEditorasColumn.REPASSE);
         columnsConverter.put("Editora", OutrasEditorasColumn.IGNORE);
+
+        columnsConverter.put("TitulodaObra", OutrasEditorasColumn.OBRA);
+        columnsConverter.put("ValorTitular", OutrasEditorasColumn.REPASSE);
+        columnsConverter.put("Qtde", OutrasEditorasColumn.VENDAS);
+        columnsConverter.put("%Perc.", OutrasEditorasColumn.PERCENTAGE);
+        columnsConverter.put("Preço", OutrasEditorasColumn.IGNORE);
+        columnsConverter.put("%Taxa", OutrasEditorasColumn.IGNORE);
+        columnsConverter.put("%Controle", OutrasEditorasColumn.IGNORE);
+        columnsConverter.put("ValorReceb.", OutrasEditorasColumn.IGNORE);
     }
 
     public static OutrasEditorasDocumento getOutrasEditorasDocumentoAjustado(int precision, PDDocument document){
@@ -206,9 +215,16 @@ public class OutrasEditorasPreProcessor {
                 String firstLine = lines[0]
                         .replace("Vlr. ", "Vlr.")
                         .replace("% A", "%A")
+                        .replace("% T", "%T")
+                        .replace("% C", "%C")
+                        .replace("% F", "%F")
+                        .replace("% P", "%P")
                         .replace("Qtde R", "QtdeR")
                         .replace("Base C", "BaseC")
-                        .replace("% F", "%F")
+                        .replace("Titulo d", "Titulod")
+                        .replace("Tituloda O", "TitulodaO")
+                        .replace("Valor R", "ValorR")
+                        .replace("Valor T", "ValorT")
                         .trim();
                 String[] firstLineSep = firstLine.split(" ");
                 if (firstLineSep.length > 1){
@@ -236,15 +252,15 @@ public class OutrasEditorasPreProcessor {
 //                            continue;
 //                        }
                         colunas.put(currentColumn, new Position(currentRec.x + xOffset, columnWidth + widthOffset));
-                        indexLine = indexLine.replace(previousFirstLine, "").trim();
+                        indexLine = indexLine.replace(lines[0].substring(0, lines[0].length() - 1), "").trim();
                     }
                     // Setting rect width to start getting next column
                     currentRec.x += columnWidth;
                     currentRec.width = 0;
-                } else if (indexLine.equals(firstLineSep[0].trim())){
+                } else if (indexLine.replace(" ", "").equals(firstLineSep[0].trim())){
                     double columnWidth = currentRec.width - increaseAmount;
 
-                    OutrasEditorasColumn currentColumn = columnsConverter.get(indexLine);
+                    OutrasEditorasColumn currentColumn = columnsConverter.get(firstLineSep[0].trim());
                     colunas.put(currentColumn, new Position(currentRec.x - 10, columnWidth + 20));
                     indexLine = indexLine.replace(previousFirstLine, "").trim();
                 }

@@ -16,6 +16,8 @@ public class CsvExporter {
             "gross_revenue, " +
             "net_revenue, " +
             "isrc, " +
+            "iswc, " +
+            "cae, " +
             "owner, " +
             "owner_pseudonym, " +
             "percent_owned, " +

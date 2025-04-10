@@ -89,7 +89,7 @@ public class OutrasEditoras extends BasePdfConversion {
         resultData.setDistributor(repassante);
         resultData.setNet_revenue(repasse);
         resultData.setPercent_owned(percentage);
-        resultData.setStatement_date(this.currentDate);
+        resultData.setStatement_date(this.currentDate == null ? "" : this.currentDate);
         resultData.setPath(this.currentFile);
 
         this.addResult(resultData, (Double) repasse);
@@ -133,6 +133,8 @@ public class OutrasEditoras extends BasePdfConversion {
 
     private Object getValueFromLine(LineData line, OutrasEditorasColumn column, boolean parseDouble){
         Position vlrUnitPosition = currentDocument.getColumnPosition(column);
+        if (vlrUnitPosition == null)
+            return "";
         String value = line.getStringFromPosition(vlrUnitPosition.getX(), vlrUnitPosition.getW()).trim();
 
         if (!value.isEmpty() && parseDouble) {

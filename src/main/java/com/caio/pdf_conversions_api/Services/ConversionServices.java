@@ -4,7 +4,6 @@ package com.caio.pdf_conversions_api.Services;
 import ConversoesAPI.Conversions.Helpers.PathsHelper;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
 import com.caio.pdf_conversions_api.Conversions.ConversionType;
-
 import com.caio.pdf_conversions_api.Conversions.PDFs.Abramus.AbramusDigital;
 import com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico.RelatorioAnalitico;
 import com.caio.pdf_conversions_api.Conversions.PDFs.Sony.SonyMusic;
@@ -14,7 +13,6 @@ import com.caio.pdf_conversions_api.Conversions.Universal.Universal;
 import com.caio.pdf_conversions_api.Exceptions.*;
 import com.caio.pdf_conversions_api.Export.CsvExportable;
 import com.caio.pdf_conversions_api.Export.CsvExporter;
-import com.caio.pdf_conversions_api.Helpers.ExportHelper;
 import com.caio.pdf_conversions_api.Models.ConversionStatus;
 import com.caio.pdf_conversions_api.Models.StartConversion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +23,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A classe que gerencia o servićo de conversão. Criua e inicia uma nova conversão.
@@ -136,7 +130,7 @@ public class ConversionServices {
         String dataCsvName = String.format("%s_data", conversionThread.getXlsName());
         String verificationCsvName = String.format("%s_verification", conversionThread.getXlsName());
 
-        String dataFilePath = cloudStorageService.exportAndUploadData(
+        /*String dataFilePath = cloudStorageService.exportAndUploadData(
                 conversionThread.getResultadosResultData(),
                 dataCsvName
         );
@@ -144,10 +138,10 @@ public class ConversionServices {
         String verificationFilePath = cloudStorageService.exportAndUploadData(
                 conversionThread.getVerificacaoResultData(),
                 verificationCsvName
-        );
+        );*/
 
-        /*String dataFilePath = this.exportToLocalCsv(conversionThread.getResultadosResultData(), dataCsvName);
-        String verificationFilePath = this.exportToLocalCsv(conversionThread.getVerificacaoResultData(), verificationCsvName);*/
+        String dataFilePath = this.exportToLocalCsv(conversionThread.getResultadosResultData(), dataCsvName);
+        String verificationFilePath = this.exportToLocalCsv(conversionThread.getVerificacaoResultData(), verificationCsvName);
 
         sendResultEvent(emitter, dataFilePath, verificationFilePath);
         sendCompletedEvent(emitter);
@@ -265,6 +259,8 @@ public class ConversionServices {
                 return new SonyMusicPublishing(conversionFilesPath, xlsName);
             if (documentType == ConversionType.ABRAMUS_DIGITAL)
                 return new AbramusDigital(conversionFilesPath, xlsName);
+            if (documentType == ConversionType.WARNER)
+                return new Warner(conversionFilesPath, xlsName);
 
             throw new ConversionTypeNotFound();
         } catch (IllegalArgumentException e){

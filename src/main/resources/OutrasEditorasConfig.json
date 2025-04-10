@@ -17,7 +17,15 @@
     "BaseCálc.",
     "Autor",
     "Editora",
-    "Repasse"
+    "Repasse",
+    "ValorTitular",
+    "%Perc.",
+    "Qtde",
+    "TitulodaObra",
+    "Preço",
+    "%Taxa",
+    "%Controle",
+    "ValorReceb."
   ],
   "documentEndLine": "Página",
   "linhasNaoPegar": [

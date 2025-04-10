@@ -102,6 +102,8 @@ public class Helper {
 
     public static double ajustaNumero(String numero) {
         try {
+            if (numero.contains("%"))
+                numero = numero.replace("%", "");
             return Double.parseDouble(corrigeSeparadorDouble(numero));
         } catch (NumberFormatException e){
             Expression expressao = new Expression(numero);
