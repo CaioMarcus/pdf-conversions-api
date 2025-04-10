@@ -130,7 +130,7 @@ public class ConversionServices {
         String dataCsvName = String.format("%s_data", conversionThread.getXlsName());
         String verificationCsvName = String.format("%s_verification", conversionThread.getXlsName());
 
-        /*String dataFilePath = cloudStorageService.exportAndUploadData(
+        String dataFilePath = cloudStorageService.exportAndUploadData(
                 conversionThread.getResultadosResultData(),
                 dataCsvName
         );
@@ -138,10 +138,10 @@ public class ConversionServices {
         String verificationFilePath = cloudStorageService.exportAndUploadData(
                 conversionThread.getVerificacaoResultData(),
                 verificationCsvName
-        );*/
+        );
 
-        String dataFilePath = this.exportToLocalCsv(conversionThread.getResultadosResultData(), dataCsvName);
-        String verificationFilePath = this.exportToLocalCsv(conversionThread.getVerificacaoResultData(), verificationCsvName);
+//        String dataFilePath = this.exportToLocalCsv(conversionThread.getResultadosResultData(), dataCsvName);
+//        String verificationFilePath = this.exportToLocalCsv(conversionThread.getVerificacaoResultData(), verificationCsvName);
 
         sendResultEvent(emitter, dataFilePath, verificationFilePath);
         sendCompletedEvent(emitter);
