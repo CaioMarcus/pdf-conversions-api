@@ -37,7 +37,7 @@ public class OutrasEditorasPreProcessor {
         columnsConverter.put("Valor", OutrasEditorasColumn.VLR_UNIT);
         columnsConverter.put("BaseCálc.", OutrasEditorasColumn.VLR_UNIT);
         columnsConverter.put("%", OutrasEditorasColumn.PERCENTAGE);
-        columnsConverter.put("%Aut.", OutrasEditorasColumn.IGNORE);
+        columnsConverter.put("%Aut.", OutrasEditorasColumn.PERCENTAGE);
         columnsConverter.put("%Fin", OutrasEditorasColumn.PERCENTAGE);
         columnsConverter.put("Repasse", OutrasEditorasColumn.REPASSE);
         columnsConverter.put("Autor", OutrasEditorasColumn.REPASSE);
@@ -51,6 +51,11 @@ public class OutrasEditorasPreProcessor {
         columnsConverter.put("%Taxa", OutrasEditorasColumn.IGNORE);
         columnsConverter.put("%Controle", OutrasEditorasColumn.IGNORE);
         columnsConverter.put("ValorReceb.", OutrasEditorasColumn.IGNORE);
+
+        columnsConverter.put("Valorbruto", OutrasEditorasColumn.IGNORE);
+        columnsConverter.put("VlrAutor", OutrasEditorasColumn.REPASSE);
+        columnsConverter.put("%Editora", OutrasEditorasColumn.IGNORE);
+        columnsConverter.put("VlrEditora", OutrasEditorasColumn.IGNORE);
     }
 
     public static OutrasEditorasDocumento getOutrasEditorasDocumentoAjustado(int precision, PDDocument document){
@@ -198,26 +203,32 @@ public class OutrasEditorasPreProcessor {
 
     private static Map<OutrasEditorasColumn, Position> getColumnsFromIndexLine(PDPage page, double increaseAmount, PDFTextStripperByArea stripper, Rectangle2D.Double rect) throws IOException {
         Rectangle2D.Double currentRec = (Rectangle2D.Double) rect.clone();
+        currentRec.height += 5;
+
         String indexLine = extractLinesFromRect(page, stripper, currentRec)[0]
-                .replace("Vlr. ", "Vlr.")
+                /*.replace("Vlr. ", "Vlr.")
                 .replace("% Aut.", "%Aut.")
                 .replace("Qtde Ref.", "QtdeRef.")
                 .replace("Base Cálc.", "BaseCálc.")
-                .replace("% Fin", "%Fin")
+                .replace("% Fin", "%Fin")*/
                 .trim();
 
         currentRec.width = 0;
         String previousFirstLine = "";
         Map<OutrasEditorasColumn, Position> colunas = new HashMap<>();
+
         for (int h = 0; h < BASE_WIDTH; h++){
             String[] lines = extractLinesFromRect(page, stripper, currentRec);
             if (lines.length > 0) {
                 String firstLine = lines[0]
                         .replace("Vlr. ", "Vlr.")
+                        .replace("Vlr A", "VlrA")
+                        .replace("Vlr E", "VlrE")
                         .replace("% A", "%A")
                         .replace("% T", "%T")
                         .replace("% C", "%C")
                         .replace("% F", "%F")
+                        .replace("% E", "%E")
                         .replace("% P", "%P")
                         .replace("Qtde R", "QtdeR")
                         .replace("Base C", "BaseC")
@@ -225,6 +236,7 @@ public class OutrasEditorasPreProcessor {
                         .replace("Tituloda O", "TitulodaO")
                         .replace("Valor R", "ValorR")
                         .replace("Valor T", "ValorT")
+                        .replace("Valor b", "Valorb")
                         .trim();
                 String[] firstLineSep = firstLine.split(" ");
                 if (firstLineSep.length > 1){
@@ -252,7 +264,7 @@ public class OutrasEditorasPreProcessor {
 //                            continue;
 //                        }
                         colunas.put(currentColumn, new Position(currentRec.x + xOffset, columnWidth + widthOffset));
-                        indexLine = indexLine.replace(lines[0].substring(0, lines[0].length() - 1), "").trim();
+                        indexLine = indexLine.replaceFirst(lines[0].substring(0, lines[0].length() - 1), "").trim();
                     }
                     // Setting rect width to start getting next column
                     currentRec.x += columnWidth;

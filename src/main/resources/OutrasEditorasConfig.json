@@ -25,7 +25,11 @@
     "Preço",
     "%Taxa",
     "%Controle",
-    "ValorReceb."
+    "ValorReceb.",
+    "Valorbruto",
+    "VlrAutor",
+    "%Editora",
+    "VlrEditora"
   ],
   "documentEndLine": "Página",
   "linhasNaoPegar": [
