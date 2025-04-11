@@ -5,31 +5,24 @@ import com.caio.pdf_conversions_api.Export.CsvExporter;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
-import java.text.ParseException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static com.caio.pdf_conversions_api.Helpers.ExportHelper.criaPlanilhaEAdicionaDados;
 
 @Service
 public class CloudStorageService {
     private final String BUCKET_NAME;
     private final Storage storage;
 
-    public CloudStorageService(
-            @Value("${app.bucket_to_save_files}") String BUCKET_NAME
-    ) {
+    public CloudStorageService(@Value("${app.bucket_to_save_files}") String BUCKET_NAME) {
         this.storage = StorageOptions.getDefaultInstance().getService();
         this.BUCKET_NAME = BUCKET_NAME;
     }
@@ -44,35 +37,29 @@ public class CloudStorageService {
                      .setContentType("text/csv")
                      .build())) {
 
-            // Gera e escreve o CSV em uma thread separada
+            // Gera e transmite o CSV em uma thread separada
             executor.submit(() -> {
                 try {
-                    CsvExporter.exportToCsv(csvFileName, data); // Cria o CSV temporariamente
-
-                    // Lê o CSV gerado e o envia para o OutputStream
-                    try (FileInputStream fileInputStream = new FileInputStream(csvFileName)) {
-                        byte[] buffer = new byte[8192];
-                        int bytesRead;
-                        while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                            out.write(buffer, 0, bytesRead);
-                        }
-                    }
-                    out.close();
+                    System.out.println("Iniciando a exportação do CSV...");
+                    CsvExporter.exportToCsv(out, data); // Agora escreve diretamente no OutputStream
+                    out.close(); // Fecha a stream para indicar fim dos dados
+                    System.out.println("CSV exportado e stream fechada.");
                 } catch (IOException e) {
-                    throw new RuntimeException("Error while exporting data", e);
+                    throw new RuntimeException("Erro ao exportar CSV", e);
                 }
             });
 
-            // Transmite o InputStream para o Google Cloud Storage
+            // Transmite os dados do InputStream para o Google Cloud Storage
             byte[] buffer = new byte[8192];
             int bytesRead;
             while ((bytesRead = in.read(buffer)) != -1) {
                 channel.write(ByteBuffer.wrap(buffer, 0, bytesRead));
             }
 
+            System.out.println("Upload concluído para: " + csvFileName);
             return generateSignedUrl(csvFileName);
         } catch (IOException e) {
-            throw new RuntimeException("Error while exporting and uploading data", e);
+            throw new RuntimeException("Erro ao exportar e enviar arquivo", e);
         } finally {
             executor.shutdown();
         }
