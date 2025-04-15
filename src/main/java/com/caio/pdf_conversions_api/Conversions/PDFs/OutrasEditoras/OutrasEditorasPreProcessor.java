@@ -1,5 +1,8 @@
 package com.caio.pdf_conversions_api.Conversions.PDFs.OutrasEditoras;
 
+import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.CharData;
+import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.LineData;
+import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.PDFAreaStripper;
 import com.caio.pdf_conversions_api.Conversions.PDFs.OutrasEditoras.Models.OutrasEditorasColumn;
 import com.caio.pdf_conversions_api.Conversions.PDFs.OutrasEditoras.Models.OutrasEditorasDocumento;
 import com.caio.pdf_conversions_api.Conversions.PDFs.Position;
@@ -59,54 +62,96 @@ public class OutrasEditorasPreProcessor {
     }
 
     public static OutrasEditorasDocumento getOutrasEditorasDocumentoAjustado(int precision, PDDocument document){
-        try {
-
-            PDFTextStripperByArea stripper = new PDFTextStripperByArea();
+            /*PDFTextStripperByArea stripper = new PDFTextStripperByArea();
             stripper.setSortByPosition(true);
 
             PDPage pageToCalibrate = document.getPage(0);
             double increaseAmount = (double) 1 / precision;
+//            Map<OutrasEditorasColumn, Position> columns = getColumnsFromIndexLine()
 
             // Get the index line (Produto, Obra, Repassante, etc), mostly because of the Y position.
             Rectangle2D.Double rectTudo = getIndexLineRectangle(pageToCalibrate, increaseAmount);
+            Map<OutrasEditorasColumn, Position> columns = getColumnsFromIndexLine(pageToCalibrate, increaseAmount, stripper, rectTudo);*/
 
-            Map<OutrasEditorasColumn, Position> columns = getColumnsFromIndexLine(pageToCalibrate, increaseAmount, stripper, rectTudo);
-//            removeEmptyColumns(pageToCalibrate, rectTudo.y, rectTudo.height, increaseAmount, rectTudo, columns);
-
-//            double documentHeight = getRectHeightWithAllLines(pageToCalibrate, increaseAmount, stripper, rectTudo);
-//
-//            rectTudo.x = columns.values().stream().min(Comparator.comparingDouble(ColunaOutrasEditoras::getX)).get().getX();
-//            rectTudo.y = rectTudo.getY() + rectTudo.getHeight();
-//            rectTudo.width = BASE_WIDTH;
-//            rectTudo.height = documentHeight - rectTudo.getHeight();
-//
-//            // Correcting Columns
-//            for (Map.Entry<String, ColunaOutrasEditoras> stringColunaOutrasEditorasEntry : columns.entrySet()) {
-//                stringColunaOutrasEditorasEntry.getValue().setY(rectTudo.y);
-//                stringColunaOutrasEditorasEntry.getValue().setHeight(rectTudo.height);
-//            }
-
-//            String[] columnsIndex = getColumnsIndexLine(columns);
-            return new OutrasEditorasDocumento(columns);
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        LineData indexLine = getIndexLine(document);
+        Map<OutrasEditorasColumn, Position> columns = getColumnsFromIndexLine(indexLine);
+        return new OutrasEditorasDocumento(columns);
     }
 
-    /*private String[] getColumnsIndexLine(Map<String, ColunaOutrasEditoras> columns){
-        List<String> columnsName = new ArrayList<>();
-        for (Map.Entry<String, ColunaOutrasEditoras> stringColunaOutrasEditorasEntry : columns.entrySet()) {
-            columnsName.add(columnsData.get(stringColunaOutrasEditorasEntry.getKey().toUpperCase()));
+    private static List<LineData> getLinesFromDocument(PDDocument document){
+        PDFAreaStripper stripper = new PDFAreaStripper();
+        stripper.setSortByPosition(true);
+        stripper.setStartPage(1);
+        stripper.setEndPage(1);
+        return stripper.getLines(document);
+    }
+
+    private static LineData getIndexLine(PDDocument document) {
+        List<LineData> lines = getLinesFromDocument(document);
+        for (LineData line : lines){
+            String fullLine = line.getFullLine();
+            String[] lineSep = line.getLineSeparated();
+            if (fullLine.contains(indexLineCommomWord) && lineSep.length != 1){
+                return line;
+            }
         }
+        return null;
+    }
 
-        columnsName.add(columnsData.get("REPASSE"));
-        columnsName.add(columnsData.get("FONTE"));
-        columnsName.add(columnsData.get("DATA"));
+    private static String fixAnomalies(String word){
+        /*if (word.matches("% \\w") || word.matches("Qtde R\\w{0,2}\\.?")){
+            return word.replace(" ", "");
+        }*/
+        return word.replace("Vlr. ", "Vlr.")
+                .replace("Vlr A", "VlrA")
+                .replace("Vlr E", "VlrE")
+                .replace("% A", "%A")
+                .replace("% T", "%T")
+                .replace("% C", "%C")
+                .replace("% F", "%F")
+                .replace("% E", "%E")
+                .replace("% P", "%P")
+                .replace("Qtde R", "QtdeR")
+                .replace("Base C", "BaseC")
+                .replace("Titulo d", "Titulod")
+                .replace("Tituloda O", "TitulodaO")
+                .replace("Valor R", "ValorR")
+                .replace("Valor T", "ValorT")
+                .replace("Valor b", "Valorb")
+                .trim();
+    }
 
-        columnsName.add("DOCUMENTO");
-        return columnsName.toArray(String[]::new);
-    }*/
+    private static Map<OutrasEditorasColumn, Position> getColumnsFromIndexLine(LineData line){
+        StringBuilder currentWord = new StringBuilder();
+        CharData firstCharData = line.getLineContent().getFirst();
+        Map<OutrasEditorasColumn, Position> columns = new HashMap<>();
+        List<CharData> lineContent = line.getLineContent();
+        for (int i = 0; i < lineContent.size(); i++) {
+            CharData charData = lineContent.get(i);
+            currentWord.append(charData.getLetter());
+            String currentWordString = fixAnomalies(currentWord.toString());
+
+            String[] currentWordSplitted = currentWordString.split("\\s+(?=[A-Za-z%]\\s*$)");
+            final String possibleColumnString = currentWordSplitted[0].trim();
+
+            if ((   currentWordSplitted.length > 1 &&
+                    indexWords.stream().anyMatch(x -> x.equalsIgnoreCase(possibleColumnString))) ||
+                    i == lineContent.size() - 1) {
+            /*if ((currentWord.toString().matches(".*\\s{2,}$") && indexWords.stream().anyMatch(x -> x.equalsIgnoreCase(possibleColumnString)))){*/
+                /*if (i < lineContent.size() - 1)
+                    charData = lineContent.get(i + 1);*/
+                OutrasEditorasColumn column = columnsConverter.get(possibleColumnString);
+                Position position = new Position(
+                        firstCharData.getX(),
+                        (charData.getX() - charData.getWidth()) - (firstCharData.getX() - firstCharData.getWidth())
+                );
+                columns.put(column, position);
+                currentWord = new StringBuilder(charData.getLetter());
+                firstCharData = charData;
+            }
+        }
+        return columns;
+    }
 
     private static Rectangle2D.Double getIndexLineRectangle(PDPage page, double increaseAmount){
         Rectangle2D.Double currentRec = new Rectangle2D.Double(0,0,BASE_WIDTH,0);
@@ -144,10 +189,6 @@ public class OutrasEditorasPreProcessor {
             if (lines.length >= 1) {
                 lastLine = lines[lines.length - 1];
                 if (lastLine.contains(indexLineCommomWord)) {
-//                    if (lines.length == 1){
-//                        stripper.removeRegion("IndexLine");
-//                        return lastLine;
-//                    }
                     currentRec.y += increaseAmount;
                     currentRec.height -= increaseAmount;
                     continue;
