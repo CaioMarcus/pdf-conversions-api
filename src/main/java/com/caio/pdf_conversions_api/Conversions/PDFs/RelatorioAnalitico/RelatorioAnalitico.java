@@ -55,7 +55,7 @@ public class RelatorioAnalitico extends ConversionThread {
             PDDocument reader = null;
             try {
                 // Recebendo o Documento
-                reader = Loader.loadPDF(new File(this.pdfPath + nomeDoArquivo));
+                reader = Loader.loadPDF(Path.of(this.pdfPath, nomeDoArquivo).toFile());
                 // Declarando os Strippers
                 PDFTextStripperByArea stripper = new PDFTextStripperByArea();
                 PDFTextStripperByArea stripper2 = new PDFTextStripperByArea();
