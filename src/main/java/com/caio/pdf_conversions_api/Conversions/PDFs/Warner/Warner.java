@@ -656,6 +656,7 @@ public class Warner extends ConversionThread {
         try {
             this.retornaResultados();
         } catch (IOException e) {
+            this.conversionProgress = -1f;
             throw new RuntimeException(e);
         }
     }

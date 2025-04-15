@@ -1,4 +1,4 @@
-package com.caio.pdf_conversions_api.Conversions.Universal;
+package com.caio.pdf_conversions_api.Conversions.PDFs.Universal;
 
 
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
@@ -44,6 +44,7 @@ public class Universal extends ConversionThread {
         try {
             this.retornaResultados();
         } catch (Exception e) {
+            this.conversionProgress = -1f;
             throw new RuntimeException(e);
         }
     }

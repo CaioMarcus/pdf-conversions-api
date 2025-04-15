@@ -10,6 +10,7 @@ import org.apache.pdfbox.text.PDFTextStripperByArea;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -469,6 +470,7 @@ public class RelatorioAnalitico extends ConversionThread {
         try {
             this.retornaResultadosInteger();
         } catch (IOException e) {
+            this.conversionProgress = -1f;
             throw new RuntimeException(e);
         }
     }
