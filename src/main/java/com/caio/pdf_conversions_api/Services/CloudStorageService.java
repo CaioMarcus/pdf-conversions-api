@@ -8,6 +8,7 @@ import com.google.cloud.storage.StorageOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -28,40 +29,25 @@ public class CloudStorageService {
     }
 
     public String exportAndUploadData(List<? extends CsvExportable> data, String fileName) {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
         String csvFileName = fileName + ".csv";
 
-        try (PipedOutputStream out = new PipedOutputStream();
-             PipedInputStream in = new PipedInputStream(out);
-             WritableByteChannel channel = storage.writer(BlobInfo.newBuilder(BUCKET_NAME, csvFileName)
-                     .setContentType("text/csv")
-                     .build())) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            System.out.println("Iniciando a exportação do CSV...");
+            CsvExporter.exportToCsv(baos, data); // Escreve CSV direto no buffer
+            System.out.println("CSV exportado para memória.");
 
-            // Gera e transmite o CSV em uma thread separada
-            executor.submit(() -> {
-                try {
-                    System.out.println("Iniciando a exportação do CSV...");
-                    CsvExporter.exportToCsv(out, data); // Agora escreve diretamente no OutputStream
-                    out.close(); // Fecha a stream para indicar fim dos dados
-                    System.out.println("CSV exportado e stream fechada.");
-                } catch (IOException e) {
-                    throw new RuntimeException("Erro ao exportar CSV", e);
-                }
-            });
-
-            // Transmite os dados do InputStream para o Google Cloud Storage
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-            while ((bytesRead = in.read(buffer)) != -1) {
-                channel.write(ByteBuffer.wrap(buffer, 0, bytesRead));
+            // Escreve o conteúdo na GCS
+            try (WritableByteChannel channel = storage.writer(
+                    BlobInfo.newBuilder(BUCKET_NAME, csvFileName)
+                            .setContentType("text/csv")
+                            .build())) {
+                channel.write(ByteBuffer.wrap(baos.toByteArray()));
             }
 
             System.out.println("Upload concluído para: " + csvFileName);
             return generateSignedUrl(csvFileName);
         } catch (IOException e) {
             throw new RuntimeException("Erro ao exportar e enviar arquivo", e);
-        } finally {
-            executor.shutdown();
         }
     }
 

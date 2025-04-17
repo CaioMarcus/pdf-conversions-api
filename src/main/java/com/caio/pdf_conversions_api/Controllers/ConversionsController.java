@@ -61,17 +61,13 @@ public class ConversionsController {
             // Inicia o Thread da conversão solicitada.
             ConversionRunnable conversionThread = conversionService.startConversionParallel(conversion);
             SseEmitter emitter = new SseEmitter(emitterTimeout * 60000L);
-            // Inicia thread de retorno do progresso e dados da conversão.
-            CompletableFuture
-                    .runAsync(() -> conversionService.returnProgressThenData(conversionThread, emitter))
-                    .exceptionally(throwable -> {
-                        emitter.completeWithError(throwable);
-                        return null;
-                    });
+
+            // Dispara a execução assíncrona com contexto preservado
+            conversionService.returnProgressThenDataAsync(conversionThread, emitter);
 
             return emitter;
-        } catch (ArquivoRepetidoException | ConversionTypeNotFound | CorruptFileException | EcadSemApOuSdException |
-                 InvalidFileException | IOException e) {
+        } catch (ArquivoRepetidoException | ConversionTypeNotFound | CorruptFileException |
+                 EcadSemApOuSdException | InvalidFileException | IOException e) {
             throw new RuntimeException(e);
         }
     }

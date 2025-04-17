@@ -1,6 +1,5 @@
 package com.caio.pdf_conversions_api.Authentication.Config;
 
-import com.caio.pdf_conversions_api.Authentication.Filter.FirebaseAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,11 +14,11 @@ import java.util.List;
 
 @Configuration
 public class SecurityConfig {
-    private final FirebaseAuthFilter firebaseAuthFilter;
-
-    public SecurityConfig(FirebaseAuthFilter firebaseAuthFilter) {
-        this.firebaseAuthFilter = firebaseAuthFilter;
-    }
+//    private final FirebaseAuthFilter firebaseAuthFilter;
+//
+//    public SecurityConfig(FirebaseAuthFilter firebaseAuthFilter) {
+//        this.firebaseAuthFilter = firebaseAuthFilter;
+//    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -27,9 +26,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
-                .addFilterBefore(firebaseAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new UsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

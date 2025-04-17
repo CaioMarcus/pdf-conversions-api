@@ -13,6 +13,7 @@ import com.caio.pdf_conversions_api.Models.ConversionStatus;
 import com.caio.pdf_conversions_api.Models.StartConversion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -83,6 +84,11 @@ public class ConversionServices {
         Thread thread = new Thread(conversionParallelProcessor);
         thread.start();
         return conversionParallelProcessor;
+    }
+
+    @Async
+    public void returnProgressThenDataAsync(ConversionRunnable conversionThread, SseEmitter emitter) {
+        returnProgressThenData(conversionThread, emitter);
     }
 
     /**
