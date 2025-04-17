@@ -2,6 +2,8 @@ package com.caio.pdf_conversions_api.Services;
 
 
 import ConversoesAPI.Conversions.Helpers.PathsHelper;
+import com.caio.pdf_conversions_api.Conversions.ConversionParallelProcessor;
+import com.caio.pdf_conversions_api.Conversions.ConversionRunnable;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
 import com.caio.pdf_conversions_api.Conversions.ConversionType;
 import com.caio.pdf_conversions_api.Conversions.PDFs.Abramus.AbramusDigital;
@@ -14,6 +16,7 @@ import com.caio.pdf_conversions_api.Conversions.PDFs.Warner.Warner;
 import com.caio.pdf_conversions_api.Exceptions.*;
 import com.caio.pdf_conversions_api.Export.CsvExportable;
 import com.caio.pdf_conversions_api.Export.CsvExporter;
+import com.caio.pdf_conversions_api.Helpers.ConversionsHelper;
 import com.caio.pdf_conversions_api.Models.ConversionStatus;
 import com.caio.pdf_conversions_api.Models.StartConversion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +60,7 @@ public class ConversionServices {
      * @throws InvalidFileException     the invalid file exception
      * @throws IOException              the io exception
      */
-    public ConversionThread startConversion(StartConversion conversion) throws ArquivoRepetidoException, ConversionTypeNotFound, CorruptFileException, EcadSemApOuSdException, InvalidFileException, IOException {
+    public ConversionRunnable startConversion(StartConversion conversion) throws ArquivoRepetidoException, ConversionTypeNotFound, CorruptFileException, EcadSemApOuSdException, InvalidFileException, IOException {
         // Conversion Service changed to run on cloud
 
         // Saving the Files
@@ -70,9 +73,10 @@ public class ConversionServices {
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        ConversionThread conversionThread = getConversionThread(conversion.getType(),
+        ConversionThread conversionThread = ConversionsHelper.getConversionThread(conversion.getType(),
                 String.valueOf(directory.toAbsolutePath()),
-                conversionId
+                conversionId,
+                directory.toFile().list()
         );
 
         Thread thread = new Thread(conversionThread);
@@ -82,14 +86,13 @@ public class ConversionServices {
         return conversionThread;
     }
 
-//    public void SaveFiles(String conversionId, List<MultipartFile> files) throws IOException {
-//        // Save the files to the desired location
-//        for(MultipartFile file : files) {
-//            String fileName = file.getOriginalFilename();
-//            String path = PathsHelper.GetConversionPath(conversionId) + File.separator + fileName;
-//            Files.copy(file.getInputStream(), Path.of(path), StandardCopyOption.REPLACE_EXISTING);
-//        }
-//    }
+    public ConversionRunnable startConversionParallel(StartConversion conversion) throws ArquivoRepetidoException, ConversionTypeNotFound, CorruptFileException, EcadSemApOuSdException, InvalidFileException, IOException {
+        // Conversion Service changed to run on cloud
+        ConversionParallelProcessor conversionParallelProcessor = new ConversionParallelProcessor(conversion);
+        Thread thread = new Thread(conversionParallelProcessor);
+        thread.start();
+        return conversionParallelProcessor;
+    }
 
     /**
      * Retorna o Progresso da conversão enquanto não é finalizada, e então os seus dados, quando a mesma é finalizada.
@@ -98,7 +101,7 @@ public class ConversionServices {
      * @param emitter                    the emitter
      */
     @Async
-    public void returnProgressThenData(ConversionThread conversionThread, SseEmitter emitter) {
+    public void returnProgressThenData(ConversionRunnable conversionThread, SseEmitter emitter) {
         try {
             monitorConversion(conversionThread, emitter);
             sendFinalResult(conversionThread, emitter);
@@ -110,7 +113,7 @@ public class ConversionServices {
     /**
      * Monitora o progresso da conversão e envia eventos SSE para o cliente.
      */
-    private void monitorConversion(ConversionThread conversionThread, SseEmitter emitter) throws InterruptedException, IOException {
+    private void monitorConversion(ConversionRunnable conversionThread, SseEmitter emitter) throws InterruptedException, IOException {
         Float progress = conversionThread.getConversionProgress();
         do{
             if (progress == -1f) {
@@ -127,11 +130,11 @@ public class ConversionServices {
     /**
      * Envia os dados finais da conversão.
      */
-    private void sendFinalResult(ConversionThread conversionThread, SseEmitter emitter) throws IOException, InterruptedException {
+    private void sendFinalResult(ConversionRunnable conversionThread, SseEmitter emitter) throws IOException, InterruptedException {
         String dataCsvName = String.format("%s_data", conversionThread.getXlsName());
         String verificationCsvName = String.format("%s_verification", conversionThread.getXlsName());
 
-        String dataFilePath = cloudStorageService.exportAndUploadData(
+        /*String dataFilePath = cloudStorageService.exportAndUploadData(
                 conversionThread.getResultadosResultData(),
                 dataCsvName
         );
@@ -139,10 +142,10 @@ public class ConversionServices {
         String verificationFilePath = cloudStorageService.exportAndUploadData(
                 conversionThread.getVerificacaoResultData(),
                 verificationCsvName
-        );
+        );*/
 
-//        String dataFilePath = this.exportToLocalCsv(conversionThread.getResultadosResultData(), dataCsvName);
-//        String verificationFilePath = this.exportToLocalCsv(conversionThread.getVerificacaoResultData(), verificationCsvName);
+        String dataFilePath = this.exportToLocalCsv(conversionThread.getResultadosResultData(), dataCsvName);
+        String verificationFilePath = this.exportToLocalCsv(conversionThread.getVerificacaoResultData(), verificationCsvName);
 
         sendResultEvent(emitter, dataFilePath, verificationFilePath);
         sendCompletedEvent(emitter);
@@ -200,7 +203,7 @@ public class ConversionServices {
     /**
      * Envia um evento de erro e finaliza a conexão.
      */
-    private void sendErrorEvent(ConversionThread conversionThread, SseEmitter emitter) throws IOException {
+    private void sendErrorEvent(ConversionRunnable conversionThread, SseEmitter emitter) throws IOException {
         String conversionError = conversionThread.getError();
         String json = "{" +
                 "\"status\": \"" + ConversionStatus.ERROR.getEventName() + "\"," +
@@ -236,39 +239,6 @@ public class ConversionServices {
     }
 
     //region ConversionsHelper
-
-    /**
-     * Cria o thread de conversão baseado no tipo de conversão informado, setando o caminho dos arquivos como o informado.
-     *
-     * @param type
-     * @param conversionFilesPath
-     * @return
-     * @throws ConversionTypeNotFound
-     */
-    private ConversionThread getConversionThread(String type, String conversionFilesPath, String xlsName) throws ConversionTypeNotFound {
-        try{
-            String adjustedType = type.toUpperCase().replace(" ", "_");
-            ConversionType documentType = ConversionType.valueOf(adjustedType);
-
-            if (documentType == ConversionType.RELATORIO_ANALITICO)
-                return new RelatorioAnalitico(conversionFilesPath, xlsName);
-            if (documentType == ConversionType.UNIVERSAL)
-                return new Universal(conversionFilesPath, xlsName);
-            if (documentType == ConversionType.SONY_MUSIC)
-                return new SonyMusic(conversionFilesPath, xlsName);
-            if (documentType == ConversionType.SONY_MUSIC_PUBLISHING)
-                return new SonyMusicPublishing(conversionFilesPath, xlsName);
-            if (documentType == ConversionType.ABRAMUS_DIGITAL)
-                return new AbramusDigital(conversionFilesPath, xlsName);
-            if (documentType == ConversionType.WARNER)
-                return new Warner(conversionFilesPath, xlsName);
-
-            throw new ConversionTypeNotFound();
-        } catch (IllegalArgumentException e){
-            e.printStackTrace();
-            throw new ConversionTypeNotFound();
-        }
-    }
 
     public String exportToLocalCsv(List<? extends CsvExportable> resultados, String fileName) {
         String localPath = System.getProperty("user.dir") + "/exports/" + fileName + ".csv";

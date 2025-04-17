@@ -140,10 +140,17 @@ public class OutrasEditorasPreProcessor {
             /*if ((currentWord.toString().matches(".*\\s{2,}$") && indexWords.stream().anyMatch(x -> x.equalsIgnoreCase(possibleColumnString)))){*/
                 /*if (i < lineContent.size() - 1)
                     charData = lineContent.get(i + 1);*/
+
                 OutrasEditorasColumn column = columnsConverter.get(possibleColumnString);
+                int xOffset = getXOffset(possibleColumnString);
+                int widthOffset = getWidthOffset(possibleColumnString);
+
+                float posX = firstCharData.getX();
+                float posWidth = (charData.getX() - charData.getWidth()) - (firstCharData.getX() - firstCharData.getWidth());
+
                 Position position = new Position(
-                        firstCharData.getX(),
-                        (charData.getX() - charData.getWidth()) - (firstCharData.getX() - firstCharData.getWidth())
+                        posX + xOffset,
+                        posWidth + widthOffset
                 );
                 columns.put(column, position);
                 currentWord = new StringBuilder(charData.getLetter());
@@ -151,6 +158,20 @@ public class OutrasEditorasPreProcessor {
             }
         }
         return columns;
+    }
+
+    private static int getWidthOffset(String line){
+        if (line.equals("Valor") || line.equals("Vlr.Arrec"))
+            return -10;
+        if (line.equals("Repassante") || line.equals("Obra"))
+            return -20;
+        return 0;
+    }
+
+    private static int getXOffset(String line){
+        if (line.equals("Autor"))
+            return -7;
+        return 0;
     }
 
     private static Rectangle2D.Double getIndexLineRectangle(PDPage page, double increaseAmount){

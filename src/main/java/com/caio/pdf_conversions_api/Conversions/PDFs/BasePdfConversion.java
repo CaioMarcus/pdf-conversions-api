@@ -39,8 +39,8 @@ public abstract class BasePdfConversion extends ConversionThread {
     protected double documentTotalSum;
     protected double acceptableDifferencePercentage = 5;
 
-    protected BasePdfConversion(String pdfPath, String xlsName, boolean isLineVerificationInFileBeginning) {
-        super(pdfPath, xlsName);
+    protected BasePdfConversion(String pdfPath, String xlsName, boolean isLineVerificationInFileBeginning, String[] filesToConvert) {
+        super(pdfPath, xlsName, filesToConvert);
         setUnwantedPageLines();
         setUnwantedLines();
         setIndexLine();
@@ -49,8 +49,8 @@ public abstract class BasePdfConversion extends ConversionThread {
         this.setVerificationLine();
     }
 
-    protected BasePdfConversion(String pdfPath, String xlsName) {
-        super(pdfPath, xlsName);
+    protected BasePdfConversion(String pdfPath, String xlsName, String[] filesToConvert) {
+        super(pdfPath, xlsName, filesToConvert);
         setUnwantedPageLines();
         setUnwantedLines();
         setIndexLine();
@@ -62,7 +62,9 @@ public abstract class BasePdfConversion extends ConversionThread {
     public void run() {
         try {
             leDocumentos();
-        } catch (IOException e) {
+        } catch (Exception e) {
+            this.conversionProgress = -1f;
+            this.error = e.getMessage();
             throw new RuntimeException(e);
         }
     }
@@ -72,13 +74,16 @@ public abstract class BasePdfConversion extends ConversionThread {
 
         String[] naPasta = this.arquivosNaPasta;
         for (int fileIndex = 0; fileIndex < naPasta.length; fileIndex++) {
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
             String arquivo = naPasta[fileIndex];
             this.currentFile = arquivo;
             processFile(arquivo);
             if (this.isLineVerificationInFileBeginning) {
                 this.doVerification(arquivo);
             }
-            setConversionProgress(fileIndex);
+            setConversionProgressByFileReaded(fileIndex);
         }
         /*
         int numCores = Runtime.getRuntime().availableProcessors();
@@ -111,7 +116,10 @@ public abstract class BasePdfConversion extends ConversionThread {
             this.executeBeforeReadingPage(documentoAtual);
             int totalPages = documentoAtual.getNumberOfPages();
             for (int currentPage = 1; currentPage < totalPages + 1; currentPage++) {
-                System.out.printf("Lendo Página: %d%n", currentPage);
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
+//                System.out.printf("Lendo Página: %d%n", currentPage);
                 this.currentPageLines = extractPageData(documentoAtual, currentPage);
                 processLines(currentPageLines, arquivo);
             }

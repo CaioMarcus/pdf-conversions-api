@@ -1,5 +1,6 @@
 package com.caio.pdf_conversions_api.Controllers;
 
+import com.caio.pdf_conversions_api.Conversions.ConversionRunnable;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
 import com.caio.pdf_conversions_api.Exceptions.*;
 import com.caio.pdf_conversions_api.Models.StartConversion;
@@ -58,7 +59,7 @@ public class ConversionsController {
     private SseEmitter getEcadSseEmmiter(StartConversion conversion) {
         try {
             // Inicia o Thread da conversão solicitada.
-            ConversionThread conversionThread = conversionService.startConversion(conversion);
+            ConversionRunnable conversionThread = conversionService.startConversionParallel(conversion);
             SseEmitter emitter = new SseEmitter(emitterTimeout * 60000L);
             // Inicia thread de retorno do progresso e dados da conversão.
             CompletableFuture

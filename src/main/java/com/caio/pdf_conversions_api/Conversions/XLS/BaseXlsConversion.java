@@ -27,8 +27,8 @@ public abstract class BaseXlsConversion extends ConversionThread {
     protected double acceptableDifferencePercentage = 5;
     protected String fileName;
 
-    protected BaseXlsConversion(String pdfPath) {
-        super(pdfPath);
+    protected BaseXlsConversion(String pdfPath, String[] conversionToConvert) {
+        super(pdfPath, conversionToConvert);
         this.setConfigFileName();
         this.readJsonAndSetFields();
         this.setUnwantedLines();
@@ -43,11 +43,20 @@ public abstract class BaseXlsConversion extends ConversionThread {
 
     @Override
     public void run() {
-        this.convertFiles();
+        try {
+            this.convertFiles();
+        } catch (Exception e) {
+            this.conversionProgress = -1f;
+            this.error = e.getMessage();
+            throw new RuntimeException(e);
+        }
     }
 
     protected void convertFiles(){
         for (String arquivo : this.arquivosNaPasta) {
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
             this.fileName = arquivo;
             String filePath = Path.of(this.pdfPath, arquivo).toString();
             System.out.println("Converting File: " + arquivo);
@@ -71,6 +80,9 @@ public abstract class BaseXlsConversion extends ConversionThread {
         this.documentTypeList = this.documentTypes.get(documentType.getValue());
 
         for (Map<String, String> currentDocumentType : this.documentTypeList) {
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
             try {
                 resetDocumentVariables();
                 processSheet(sheet, currentDocumentType, documentType);

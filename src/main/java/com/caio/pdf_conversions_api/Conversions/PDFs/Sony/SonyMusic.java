@@ -14,8 +14,8 @@ import static com.caio.pdf_conversions_api.Helpers.Helper.mmParaPx;
 
 public class SonyMusic extends BasePdfConversion {
 
-    public SonyMusic(String pdfPath, String xlsName) {
-        super(pdfPath, xlsName);
+    public SonyMusic(String pdfPath, String xlsName, String[] filesToConvert) {
+        super(pdfPath, xlsName, filesToConvert);
     }
 
     @Override

@@ -21,8 +21,8 @@ public class SonyMusicPublishing extends BaseXlsConversion {
     protected String tipoExecucao;
     protected Map<String, Set<SonyTypes>> foundedTypes = new HashMap<>();
 
-    public SonyMusicPublishing(String pdfPath) {
-        super(pdfPath);
+    public SonyMusicPublishing(String pdfPath, String[] filesToConvert) {
+        super(pdfPath, filesToConvert);
     }
 
     @Override

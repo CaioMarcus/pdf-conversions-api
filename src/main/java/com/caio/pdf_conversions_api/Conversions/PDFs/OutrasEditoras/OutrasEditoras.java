@@ -19,8 +19,8 @@ public class OutrasEditoras extends BasePdfConversion {
 
     protected OutrasEditorasDocumento currentDocument;
     protected double testSum;
-    public OutrasEditoras(String pdfPath, String xlsName) {
-        super(pdfPath, xlsName);
+    public OutrasEditoras(String pdfPath, String xlsName, String[] filesToConvert) {
+        super(pdfPath, xlsName, filesToConvert);
     }
 
     @Override

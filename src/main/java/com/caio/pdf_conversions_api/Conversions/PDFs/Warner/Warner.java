@@ -3,7 +3,6 @@ package com.caio.pdf_conversions_api.Conversions.PDFs.Warner;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
 import com.caio.pdf_conversions_api.Export.ResultData;
 import com.caio.pdf_conversions_api.Export.VerificationData;
-import com.caio.pdf_conversions_api.Helpers.ConversionDateParser;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.pdfbox.Loader;
@@ -13,7 +12,6 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 
 import java.awt.geom.Rectangle2D;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,8 +27,8 @@ public class Warner extends ConversionThread {
                     "sub_fonte", "territorio", "fonte",
                     "unidade", "royalty_total", "percentual_titular", "royalty_titular", "editora_atual", "periodo_royalty"};
 
-    public Warner(String pdfPath, String xlsName) {
-        super(pdfPath, xlsName);
+    public Warner(String pdfPath, String xlsName, String[] filesToConvert) {
+        super(pdfPath, xlsName, filesToConvert);
     }
 
     @Override
@@ -97,6 +95,9 @@ public class Warner extends ConversionThread {
             String data = null;
 
             for (int i = 0; i < numberOfPages; i++) {
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
                 int indiceObra = 0;
                 int indiceTudo = 0;
                 int indiceProvedor = 0;
@@ -345,7 +346,7 @@ public class Warner extends ConversionThread {
                 }
             }
             reader.close();
-            this.setConversionProgress(fileIndex);
+            this.setConversionProgressByFileReaded(fileIndex);
         }
     }
     public void formataExportaPlanilhaUn(List<Map<String, String[]>> entrada, String nomeSaida,
@@ -655,8 +656,9 @@ public class Warner extends ConversionThread {
     public void run() {
         try {
             this.retornaResultados();
-        } catch (IOException e) {
+        } catch (Exception e) {
             this.conversionProgress = -1f;
+            this.error = e.getMessage();
             throw new RuntimeException(e);
         }
     }

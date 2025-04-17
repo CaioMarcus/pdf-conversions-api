@@ -17,8 +17,8 @@ public class SonyMusicPublishing extends BasePdfConversion {
     private boolean startReading;
     protected String tipoExecucao;
 
-    public SonyMusicPublishing(String pdfPath, String xlsName) {
-        super(pdfPath, xlsName);
+    public SonyMusicPublishing(String pdfPath, String xlsName, String[] filesToConvert) {
+        super(pdfPath, xlsName, filesToConvert);
     }
 
     @Override

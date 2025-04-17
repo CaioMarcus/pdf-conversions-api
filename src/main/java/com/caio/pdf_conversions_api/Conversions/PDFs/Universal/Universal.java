@@ -35,8 +35,8 @@ public class Universal extends ConversionThread {
 
     private int indiceTerritorios, indiceInicioTerritorio;
 
-    public Universal(String pdfPath, String xlsName) {
-        super(pdfPath, xlsName);
+    public Universal(String pdfPath, String xlsName, String[] filesToConvert) {
+        super(pdfPath, xlsName, filesToConvert);
     }
 
     @Override
@@ -45,6 +45,7 @@ public class Universal extends ConversionThread {
             this.retornaResultados();
         } catch (Exception e) {
             this.conversionProgress = -1f;
+            this.error = e.getMessage();
             throw new RuntimeException(e);
         }
     }
@@ -114,6 +115,9 @@ public class Universal extends ConversionThread {
                 double somatorioParaObra = 0.0;
 
                 for (int i = 0; i < reader.getNumberOfPages(); i++) {
+                    if (Thread.currentThread().isInterrupted()) {
+                        return null;
+                    }
                     System.out.println(nomeDoArquivo + " " + i);
                     int indiceObra = 0;
                     int indiceRenda = 0;

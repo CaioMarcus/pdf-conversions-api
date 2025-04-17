@@ -8,7 +8,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
 
 import java.awt.geom.Rectangle2D;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.text.ParseException;
@@ -28,8 +27,8 @@ public class RelatorioAnalitico extends ConversionThread {
     String[] arrayObraAtual;
     String[] linhasAutores;
 
-    public RelatorioAnalitico(String pdfPath, String xlsName) {
-        super(pdfPath, xlsName);
+    public RelatorioAnalitico(String pdfPath, String xlsName, String[] filesToConvert) {
+        super(pdfPath, xlsName, filesToConvert);
     }
 
     public void retornaResultadosInteger()
@@ -108,6 +107,9 @@ public class RelatorioAnalitico extends ConversionThread {
                 int numOfPag = reader.getNumberOfPages();
                 // Laço para ler cada página
                 for (int i = 0; i < numOfPag; i++) {
+                    if (Thread.currentThread().isInterrupted()) {
+                        return;
+                    }
                     ultimoIndiceEditora = 0;
                     indiceObraAtual = -1;
                     // Extrai os dados da página para o stripper
@@ -213,7 +215,7 @@ public class RelatorioAnalitico extends ConversionThread {
                 }
                 // Fecha o documento
                 reader.close();
-                setConversionProgress(fileIndex);
+                setConversionProgressByFileReaded(fileIndex);
             } catch (Exception e) {
                 if (reader != null) reader.close();
                 throw e;
@@ -469,7 +471,7 @@ public class RelatorioAnalitico extends ConversionThread {
     public void run() {
         try {
             this.retornaResultadosInteger();
-        } catch (IOException e) {
+        } catch (Exception e) {
             this.conversionProgress = -1f;
             throw new RuntimeException(e);
         }

@@ -9,4 +9,5 @@ public enum ConversionType {
     SONY_MUSIC,
     SONY_MUSIC_PUBLISHING,
     ABRAMUS_DIGITAL,
+    OUTRAS_EDITORAS,
 }
