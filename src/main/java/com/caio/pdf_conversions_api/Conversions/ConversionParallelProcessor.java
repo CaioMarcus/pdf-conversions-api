@@ -22,26 +22,28 @@ import java.util.stream.Collectors;
 @Getter
 public class ConversionParallelProcessor implements ConversionRunnable {
 
+    private final String xlsName;
+    private final String conversionId;
+    private final StartConversion conversion;
+
     private List<Future<?>> futures = new ArrayList<>();
     private List<ConversionThread> conversionsThreads = new ArrayList<>();
-    private String error;
-    private String xlsName;
-    private StartConversion conversion;
     private ExecutorService executor;
+    private String error;
 
     public ConversionParallelProcessor(StartConversion startConversion) {
         this.conversion = startConversion;
-        this.xlsName = startConversion.getName();
+        this.conversionId = ConversoesAPI.Conversions.Helpers.PathsHelper.createConversionId(conversion.getName());
+        this.xlsName = conversionId;
     }
 
     private void startConversion() {
         try {
             // Saving the Files
-            String conversionId = ConversoesAPI.Conversions.Helpers.PathsHelper.createConversionId(conversion.getName());
-            Path directory = Files.createTempDirectory(conversionId);
+            Path directory = Files.createTempDirectory(this.conversionId);
             this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-            for(MultipartFile file : conversion.getFiles()) {
+            for(MultipartFile file : this.conversion.getFiles()) {
                 String fileName = file.getOriginalFilename();
                 if (fileName == null || !fileName.endsWith(".pdf")) {
                     continue;
@@ -51,9 +53,9 @@ public class ConversionParallelProcessor implements ConversionRunnable {
 
                 try {
                     ConversionThread conversionThread = ConversionsHelper.getConversionThread(
-                            conversion.getType(),
+                            this.conversion.getType(),
                             String.valueOf(directory.toAbsolutePath()),
-                            conversionId,
+                            this.conversionId,
                             new String[]{ fileName }
                     );
                     Future<?> conversionExecution = this.executor.submit(conversionThread);
@@ -97,14 +99,14 @@ public class ConversionParallelProcessor implements ConversionRunnable {
 
     @Override
     public List<ResultData> getResultadosResultData() {
-        return conversionsThreads.stream()
+        return this.conversionsThreads.stream()
                 .flatMap(c -> c.getResultadosResultData().stream())
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<VerificationData> getVerificacaoResultData() {
-        return conversionsThreads.stream()
+        return this.conversionsThreads.stream()
                 .flatMap(c -> c.getVerificacaoResultData().stream())
                 .collect(Collectors.toList());
     }
