@@ -5,14 +5,6 @@ import ConversoesAPI.Conversions.Helpers.PathsHelper;
 import com.caio.pdf_conversions_api.Conversions.ConversionParallelProcessor;
 import com.caio.pdf_conversions_api.Conversions.ConversionRunnable;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
-import com.caio.pdf_conversions_api.Conversions.ConversionType;
-import com.caio.pdf_conversions_api.Conversions.PDFs.Abramus.AbramusDigital;
-import com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico.RelatorioAnalitico;
-import com.caio.pdf_conversions_api.Conversions.PDFs.Sony.SonyMusic;
-import com.caio.pdf_conversions_api.Conversions.PDFs.Sony.SonyMusicPublishing;
-import com.caio.pdf_conversions_api.Conversions.PDFs.Universal.Universal;
-import com.caio.pdf_conversions_api.Conversions.PDFs.Warner.Warner;
-
 import com.caio.pdf_conversions_api.Exceptions.*;
 import com.caio.pdf_conversions_api.Export.CsvExportable;
 import com.caio.pdf_conversions_api.Export.CsvExporter;
@@ -21,7 +13,6 @@ import com.caio.pdf_conversions_api.Models.ConversionStatus;
 import com.caio.pdf_conversions_api.Models.StartConversion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -100,7 +91,6 @@ public class ConversionServices {
      * @param conversionThread           the conversion thread
      * @param emitter                    the emitter
      */
-    @Async
     public void returnProgressThenData(ConversionRunnable conversionThread, SseEmitter emitter) {
         try {
             monitorConversion(conversionThread, emitter);
