@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,6 +22,7 @@ import java.util.List;
 public class FirebaseAuthFilter extends OncePerRequestFilter {
 
     private final FirebaseAuth firebaseAuth;
+    private final SecurityContextRepository contextRepository = new RequestAttributeSecurityContextRepository();
 
     public FirebaseAuthFilter(FirebaseAuth firebaseAuth) {
         this.firebaseAuth = firebaseAuth;
@@ -39,6 +42,8 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(uid, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                contextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
 
                 request.setAttribute("firebaseUser", decodedToken);
             } catch (FirebaseAuthException e) {
