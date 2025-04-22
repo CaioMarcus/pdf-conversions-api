@@ -12,6 +12,11 @@ public class VerificationData implements CsvExportable{
     private Object document_date = "\"\"";
     private Object document = "\"\"";
 
+    @Override
+    public String getIndexLine() {
+        return "";
+    }
+
     public String getCsvLine() {
         return String.join(",",
                 String.format("\"%s\"", status),

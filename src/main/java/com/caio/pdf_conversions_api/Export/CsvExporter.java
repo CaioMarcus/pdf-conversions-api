@@ -4,32 +4,7 @@ import java.io.*;
 import java.util.List;
 
 public class CsvExporter {
-    private static final String resultDataIndexLine =
-            "catalog_id, " +
-            "owner_id, " +
-            "category, " +
-            "characteristic, " +
-            "configuration, " +
-            "country, " +
-            "distributor, " +
-            "gross_revenue, " +
-            "net_revenue, " +
-            "isrc, " +
-            "iswc, " +
-            "cae, " +
-            "owner, " +
-            "owner_pseudonym, " +
-            "percent_owned, " +
-            "performance_event, " +
-            "sales_date, " +
-            "source, " +
-            "track_artist, " +
-            "track_name, " +
-            "type, " +
-            "units, " +
-            "currency, " +
-            "statement_date, " +
-            "path";
+
 
     private static final String verificationDataIndexLine =
             "status, " +
