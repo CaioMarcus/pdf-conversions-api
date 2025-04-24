@@ -3,7 +3,13 @@ package com.caio.pdf_conversions_api.Export;
 import lombok.Setter;
 
 @Setter
-public class VerificationData implements CsvExportable{
+public class VerificationData implements CsvExportable {
+    private static final String indexLine = "status, " +
+            "informed_total, " +
+            "summed_total, " +
+            "difference, " +
+            "document_date, " +
+            "document";
 
     private Object status = "\"\"";
     private Object informed_total = "\"\"";
@@ -14,7 +20,7 @@ public class VerificationData implements CsvExportable{
 
     @Override
     public String getIndexLine() {
-        return "";
+        return indexLine;
     }
 
     public String getCsvLine() {

@@ -1,6 +1,7 @@
 package com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico;
 
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
+import com.caio.pdf_conversions_api.Export.RelatorioAnalitico.RelatorioAnaliticoResultData;
 import com.caio.pdf_conversions_api.Export.ResultData;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import org.apache.pdfbox.Loader;
@@ -284,7 +285,7 @@ public class RelatorioAnalitico extends ConversionThread {
             pseudonimo = new StringBuilder();
         }
 
-        ResultData resultData = new ResultData();
+        RelatorioAnaliticoResultData resultData = new RelatorioAnaliticoResultData();
 
         resultData.setPercent_owned(Helper.ajustaNumero(porcentagem));
         resultData.setCatalog_id(arrayObraAtual[0]);

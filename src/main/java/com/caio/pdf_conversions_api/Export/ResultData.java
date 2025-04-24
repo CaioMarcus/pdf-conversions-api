@@ -7,8 +7,7 @@ import lombok.Setter;
 public class ResultData implements CsvExportable {
     private final String commaFormat = "\"%s\"";
 
-    @Getter
-    private final String indexLine =
+    private static final String indexLine =
         "catalog_id, " +
                 "owner_id, " +
                 "category, " +
@@ -61,6 +60,11 @@ public class ResultData implements CsvExportable {
     private Object statement_date = "";
     private Object path = "";
 
+
+    @Override
+    public String getIndexLine() {
+        return indexLine;
+    }
 
     public String getCsvLine() {
         return String.join(",",
