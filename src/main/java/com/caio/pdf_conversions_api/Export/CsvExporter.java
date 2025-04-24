@@ -25,9 +25,9 @@ public class CsvExporter {
 
     private static void exportData(List<? extends CsvExportable> objects, Writer writer) throws IOException {
         if (!objects.isEmpty()) {
-            writer.write(objects.getFirst().getIndexLine());
+            writer.write(objects.getFirst().getIndexLine() + System.lineSeparator());
             for (CsvExportable csvExportable : objects) {
-                writer.write(csvExportable.getCsvLine() + "\n");
+                writer.write(csvExportable.getCsvLine() + System.lineSeparator());
             }
         }
     }
