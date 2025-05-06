@@ -171,6 +171,8 @@ public class OutrasEditorasPreProcessor {
     private static int getXOffset(String line){
         if (line.equals("Autor"))
             return -7;
+        if (line.equals("Repassante"))
+            return -5;
         return 0;
     }
 
