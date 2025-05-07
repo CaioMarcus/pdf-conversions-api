@@ -2,6 +2,8 @@ package com.caio.pdf_conversions_api.Conversions.PDFs.Universal;
 
 
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
+import com.caio.pdf_conversions_api.Export.ResultData;
+import com.caio.pdf_conversions_api.Export.VerificationData;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import com.caio.pdf_conversions_api.Strippers.PDFLayoutTextStripperByArea;
 import io.github.jonathanlink.PDFLayoutTextStripper;
@@ -59,16 +61,17 @@ public class Universal extends ConversionThread {
         };
     }
 
-    protected List<Map<String, String[]>> retornaResultados() throws Exception {
+    protected void retornaResultados() throws Exception {
         String obraAtual = "";
         String data = "";
         Map<String, String[]> Resultados = new LinkedHashMap<>();
-        Resultados.put("0", linhaIndice);
         Map<String, String[]> verifica = new LinkedHashMap<>();
 
         List<Map<String, String[]>> cedulas = new ArrayList<>();
         assert arquivosNaPasta != null;
-        for (String nomeDoArquivo : this.arquivosNaPasta) {
+        String[] naPasta = this.arquivosNaPasta;
+        for (int fileIndex = 0; fileIndex < naPasta.length; fileIndex++) {
+            String nomeDoArquivo = naPasta[fileIndex];
             System.out.println("Lendo Arquivo " + nomeDoArquivo);
             PDDocument reader = null;
             PDDocument readerTerritorio = null;
@@ -116,7 +119,7 @@ public class Universal extends ConversionThread {
 
                 for (int i = 0; i < reader.getNumberOfPages(); i++) {
                     if (Thread.currentThread().isInterrupted()) {
-                        return null;
+                        return;
                     }
                     System.out.println(nomeDoArquivo + " " + i);
                     int indiceObra = 0;
@@ -130,62 +133,6 @@ public class Universal extends ConversionThread {
                     if (i == 215) {
                         System.out.println("");
                     }
-                    /*
-                    PDDocument finalReader = reader;
-                    int finalI = i;
-                    Thread lerStripper = new Thread(() -> {
-                        try {
-                            stripper.extractRegions(finalReader.getPage(finalI));
-                        } catch (Exception ignore){
-                        }
-                    });
-                    Thread lerStripper2 = new Thread(() -> {
-                        try {
-                            stripper2.extractRegions(finalReader.getPage(finalI));
-                        } catch (Exception ignore){
-                        }
-                    });
-                    Thread lerStripper3 = new Thread(() -> {
-                        try {
-                            stripper3.extractRegions(finalReader.getPage(finalI));
-                        } catch (Exception ignore){
-                        }
-                    });
-                    Thread lerStripper4 = new Thread(() -> {
-                        try {
-                            stripper4.extractRegions(finalReader.getPage(finalI));
-                        } catch (Exception ignore){
-                        }
-                    });
-                    Thread lerStripperLayout = new Thread(() -> {
-                        try {
-                            layoutStripper.extractRegions(finalReader.getPage(finalI));
-                        } catch (Exception ignore){
-                        }
-                    });
-                    Thread lerStripperLayout2 = new Thread(() -> {
-                        try {
-                            layoutStripper2.extractRegions(finalReader.getPage(finalI));
-                        } catch (Exception ignore){
-                        }
-                    });
-                    lerStripper.start();
-                    lerStripper2.start();
-                    lerStripper3.start();
-                    lerStripper4.start();
-                    lerStripperLayout.start();
-                    lerStripperLayout2.start();
-                    try{
-                        lerStripper.join();
-                        lerStripper2.join();
-                        lerStripper3.join();
-                        lerStripper4.join();
-                        lerStripperLayout.join();
-                        lerStripperLayout2.join();
-                    } catch (InterruptedException e){
-                        e.printStackTrace();
-                    }
-                    */
                     try {
                         stripper.extractRegions(reader.getPage(i));
                         stripper2.extractRegions(reader.getPage(i));
@@ -193,7 +140,7 @@ public class Universal extends ConversionThread {
                         stripper4.extractRegions(reader.getPage(i));
                         layoutStripper.extractRegions(reader.getPage(i));
                         layoutStripper2.extractRegions(reader.getPage(i));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         System.out.println("a");
                     }
                     String linhaData = stripper.getTextForRegion("rect3").replace(System.lineSeparator(), "");
@@ -218,9 +165,6 @@ public class Universal extends ConversionThread {
                     String[] territorioExploracao = layoutStripper.getTextForRegion("TerritorioExploracao").split(System.lineSeparator());
                     String[] territoriosAteData = stripper4.getTextForRegion("TerritorioEFonteDeRenda").split(System.lineSeparator());
                     String[] territoriosAteDataComEspacos = layoutStripper2.getTextForRegion("TerritorioEFonteDeRenda").split(System.lineSeparator());
-                    //String[] territorioComTudo = stripper4.getTextForRegion("TerritorioEFonteDeRenda").split(System.lineSeparator());
-                    //String[] territorioComTudotst = layoutStripper.getTextForRegion("TerritorioEFonteDeRenda").split(System.lineSeparator());
-                    //var tst = pegaTerritorios(readerTerritorio, i);
                     List<String> fonteDeRendaTudo = List.of(stripper3.getTextForRegion("rectFonteRendaTudo").split(System.lineSeparator()));
 
                     if (obras.length > 0 && obras[1].contains("Sumário finan"))
@@ -240,11 +184,11 @@ public class Universal extends ConversionThread {
                     String renda;
                     try {
                         possuiTerritorioInicio(territoriosComTudoComEspacos.get(0), true);
-                    } catch (Exception ignore){
+                    } catch (Exception ignore) {
                     }
 
                     List<String> territorios = corrigeTerritorios(territorioExploracao, territoriosComTudo);
-                    if (territorios.size() == 0){
+                    if (territorios.size() == 0) {
                         erros.add("Falha ao detectar o território. Verifique detalhadamente as obras na pagina " + (i + 1) + "; Arquivo: " + nomeDoArquivo + " Indice Obra " + (Resultados.size() - 1));
                         indiceInicioTerritorio += 20;
                         territorios.add(String.format("N/D (PAG. %d); Arq: %s", (i + 1), nomeDoArquivo));
@@ -260,11 +204,21 @@ public class Universal extends ConversionThread {
                             String[] restoSep = restoAtual.split(" ");
                             String numeroConv = restoSep[restoSep.length - 1].replace("R$", "").replace(",", "");
                             double valorTotal = Double.parseDouble(numeroConv);
-
+                            String resultado = "BATEU";
                             if (Math.round(valorTotal) != Math.round(somatorio)) {
-                                verifica.put(String.valueOf(verifica.size()), new String[]
-                                        {"NÃO BATEU", "SOMA REALIZADA:", String.valueOf(somatorio), "VALOR CONSTADO:", numeroConv, data});
+                                resultado = "NÃO BATEU";
+//                                verifica.put(String.valueOf(verifica.size()), new String[]
+//                                        {"NÃO BATEU", "SOMA REALIZADA:", String.valueOf(somatorio), "VALOR CONSTADO:", numeroConv, data});
                             }
+                            VerificationData verificationData = new VerificationData();
+                            verificationData.setStatus(resultado);
+                            verificationData.setDocument(nomeDoArquivo);
+                            verificationData.setInformed_total(valorTotal);
+                            verificationData.setSummed_total(somatorio);
+                            verificationData.setDifference(valorTotal - somatorio);
+                            verificationData.setDocument_date(data);
+
+                            this.verificacaoResultData.add(verificationData);
                             somatorio = 0.0;
                             break;
                         }
@@ -287,7 +241,7 @@ public class Universal extends ConversionThread {
                             String linhaTerritorio = null;
                             try {
                                 linhaTerritorio = territorios.get(indiceTerritorioExploracao);
-                            } catch (IndexOutOfBoundsException e){
+                            } catch (IndexOutOfBoundsException e) {
                                 System.out.println("a");
                             }
                             String[] linhaRestoSep = restoAtual.split(" ");
@@ -303,9 +257,21 @@ public class Universal extends ConversionThread {
                             PosM1 = PosM1.replace(",", "");
                             PosM3 = PosM3.replace(",", "");
 
-                            Resultados.put(String.valueOf(Resultados.size()), new String[]
+                            /*Resultados.put(String.valueOf(Resultados.size()), new String[]
                                     {obraAtual, linhaTerritorio, listaFonteDeRenda.get(indiceRendaTudo),
-                                    listaTipoDeRenda.get(indiceRenda), PosM4, PosM3, PosM2, PosM1, editoraAtual, data});
+                                    listaTipoDeRenda.get(indiceRenda), PosM4, PosM3, PosM2, PosM1, editoraAtual, data});*/
+
+                            ResultData resultData = new ResultData();
+                            resultData.setNet_revenue(somatorio);
+                            resultData.setPercent_owned(PosM2);
+                            resultData.setGross_revenue(PosM3);
+                            resultData.setUnits(PosM4);
+                            resultData.setType(listaTipoDeRenda.get(indiceRenda));
+                            resultData.setSource(listaFonteDeRenda.get(indiceRendaTudo));
+                            resultData.setCountry(linhaTerritorio);
+                            resultData.setTrack_name(obraAtual);
+                            resultData.setStatement_date(data);
+                            resultData.setPath(nomeDoArquivo);
 
                             somatorio += Double.parseDouble(PosM1);
                             somatorioParaObra += Double.parseDouble(PosM1);
@@ -313,8 +279,10 @@ public class Universal extends ConversionThread {
                             indiceTerritorioEFonte++;
                             indiceRendaTudo++;
 
+                            this.resultadosResultData.add(resultData);
+
                             if (indiceTerritorioEFonte < territoriosComTudoComEspacos.size() &&
-                                    possuiTerritorioInicio(territoriosComTudoComEspacos.get(indiceTerritorioEFonte), false)){
+                                    possuiTerritorioInicio(territoriosComTudoComEspacos.get(indiceTerritorioEFonte), false)) {
                                 indiceTerritorioExploracao++;
                             }
 
@@ -338,16 +306,12 @@ public class Universal extends ConversionThread {
                     }
                 }
                 reader.close();
-            } catch (Exception e){
+                this.setConversionProgressByFileReaded(fileIndex);
+            } catch (Exception e) {
                 if (reader != null) reader.close();
                 throw e;
             }
         }
-        System.out.println("Validando Dados");
-        cedulas.add(Resultados);
-        cedulas.add(verifica);
-        cedulas.add(verifica);
-        return cedulas;
     }
 
     private boolean possuiTerritorioInicio(String linha, boolean linhaInicio){
