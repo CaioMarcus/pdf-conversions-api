@@ -3,6 +3,7 @@ package com.caio.pdf_conversions_api.Conversions.PDFs;
 import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.LineData;
 import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.PDFAreaStripper;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
+import com.caio.pdf_conversions_api.Exceptions.ConversionException;
 import com.caio.pdf_conversions_api.Export.ResultData;
 import com.caio.pdf_conversions_api.Export.VerificationData;
 import com.caio.pdf_conversions_api.Helpers.Helper;
@@ -64,7 +65,9 @@ public abstract class BasePdfConversion extends ConversionThread {
             leDocumentos();
         } catch (Exception e) {
             this.conversionProgress = -1f;
-            this.error = e.getMessage();
+            if (e instanceof ConversionException)
+                this.error = e.getMessage();
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }

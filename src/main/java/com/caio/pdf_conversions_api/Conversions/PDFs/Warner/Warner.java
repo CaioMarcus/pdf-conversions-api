@@ -1,6 +1,7 @@
 package com.caio.pdf_conversions_api.Conversions.PDFs.Warner;
 
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
+import com.caio.pdf_conversions_api.Exceptions.ConversionException;
 import com.caio.pdf_conversions_api.Export.ResultData;
 import com.caio.pdf_conversions_api.Export.VerificationData;
 import com.caio.pdf_conversions_api.Helpers.Helper;
@@ -658,7 +659,8 @@ public class Warner extends ConversionThread {
             this.retornaResultados();
         } catch (Exception e) {
             this.conversionProgress = -1f;
-            this.error = e.getMessage();
+            if (e instanceof ConversionException)
+                this.error = e.getMessage();
             throw new RuntimeException(e);
         }
     }

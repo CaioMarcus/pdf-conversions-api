@@ -44,6 +44,7 @@ public class OutrasEditoras extends BasePdfConversion {
                 "Obra",
                 "Valor líquido:",
                 "Adtos do período:",
+                "Totais da obra:",
                 "Sub total do produto:"
         };
     }

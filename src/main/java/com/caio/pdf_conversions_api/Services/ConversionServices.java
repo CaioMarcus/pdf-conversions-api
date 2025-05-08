@@ -48,11 +48,10 @@ public class ConversionServices {
      * @throws ArquivoRepetidoException the arquivo repetido exception
      * @throws ConversionTypeNotFound   the conversion type not found
      * @throws CorruptFileException     the corrupt file exception
-     * @throws EcadSemApOuSdException   the ecad sem ap ou sd exception
      * @throws InvalidFileException     the invalid file exception
      * @throws IOException              the io exception
      */
-    public ConversionRunnable startConversion(StartConversion conversion) throws ArquivoRepetidoException, ConversionTypeNotFound, CorruptFileException, EcadSemApOuSdException, InvalidFileException, IOException {
+    public ConversionRunnable startConversion(StartConversion conversion) throws ArquivoRepetidoException, ConversionTypeNotFound, CorruptFileException, InvalidFileException, IOException {
         // Conversion Service changed to run on cloud
 
         // Saving the Files
@@ -78,7 +77,7 @@ public class ConversionServices {
         return conversionThread;
     }
 
-    public ConversionRunnable startConversionParallel(StartConversion conversion) throws ArquivoRepetidoException, ConversionTypeNotFound, CorruptFileException, EcadSemApOuSdException, InvalidFileException, IOException {
+    public ConversionRunnable startConversionParallel(StartConversion conversion) throws ArquivoRepetidoException, ConversionTypeNotFound, CorruptFileException, InvalidFileException, IOException {
         // Conversion Service changed to run on cloud
         ConversionParallelProcessor conversionParallelProcessor = new ConversionParallelProcessor(conversion);
         Thread thread = new Thread(conversionParallelProcessor);
@@ -102,7 +101,8 @@ public class ConversionServices {
             monitorConversion(conversionThread, emitter);
             sendFinalResult(conversionThread, emitter);
         } catch (Exception e) {
-            handleException(e, emitter);
+            emitter.completeWithError(e);
+//            handleException(e, emitter);
         }
     }
 
@@ -203,7 +203,7 @@ public class ConversionServices {
         String conversionError = conversionThread.getError();
         String json = "{" +
                 "\"status\": \"" + ConversionStatus.ERROR.getEventName() + "\"," +
-                "\"value\": \"Error: " + conversionError + "\"" +
+                "\"value\": \"Error: " + conversionError.replace("\"", "'") + "\"" +
                 "}";
 
         emitter.send(SseEmitter.event()

@@ -1,6 +1,6 @@
 package com.caio.pdf_conversions_api.Exceptions;
 
-public class ArrayNotFound extends Exception
+public class ArrayNotFound extends ConversionException
 {
     public ArrayNotFound()
     {

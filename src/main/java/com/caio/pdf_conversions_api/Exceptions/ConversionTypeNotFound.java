@@ -1,6 +1,6 @@
 package com.caio.pdf_conversions_api.Exceptions;
 
-public class ConversionTypeNotFound extends Exception
+public class ConversionTypeNotFound extends ConversionException
 {
     public ConversionTypeNotFound()
     {

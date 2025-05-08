@@ -2,6 +2,7 @@ package com.caio.pdf_conversions_api.Conversions.XLS;
 
 import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.LineData;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
+import com.caio.pdf_conversions_api.Exceptions.ConversionException;
 import com.caio.pdf_conversions_api.Helpers.Helper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.ss.usermodel.*;
@@ -47,7 +48,8 @@ public abstract class BaseXlsConversion extends ConversionThread {
             this.convertFiles();
         } catch (Exception e) {
             this.conversionProgress = -1f;
-            this.error = e.getMessage();
+            if (e instanceof ConversionException)
+                this.error = e.getMessage();
             throw new RuntimeException(e);
         }
     }

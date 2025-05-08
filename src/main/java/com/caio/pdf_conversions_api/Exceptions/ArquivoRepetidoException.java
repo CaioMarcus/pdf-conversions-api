@@ -2,7 +2,7 @@ package com.caio.pdf_conversions_api.Exceptions;
 
 import java.util.Map;
 
-public class ArquivoRepetidoException extends Exception{
+public class ArquivoRepetidoException extends ConversionException{
 
     private final String mensagem;
 

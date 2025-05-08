@@ -1,6 +1,6 @@
 package com.caio.pdf_conversions_api.Exceptions;
 
-public class InvalidFileException extends Exception
+public class InvalidFileException extends ConversionException
 {
     private final String file;
 

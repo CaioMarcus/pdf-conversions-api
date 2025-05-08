@@ -47,4 +47,8 @@ public abstract class ConversionThread extends ConversionDateParser implements C
     protected void setConversionProgressByFileReaded(int currentFile){
         this.conversionProgress = ((currentFile + 1) / (float) arquivosNaPasta.length) * convertWeight;
     }
+
+    public String getError() {
+        return error == null ? "Erro Desconhecido. Contate o Administrador" : error;
+    }
 }

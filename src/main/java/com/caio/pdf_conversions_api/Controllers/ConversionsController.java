@@ -67,7 +67,7 @@ public class ConversionsController {
 
             return emitter;
         } catch (ArquivoRepetidoException | ConversionTypeNotFound | CorruptFileException |
-                 EcadSemApOuSdException | InvalidFileException | IOException e) {
+                 InvalidFileException | IOException e) {
             throw new RuntimeException(e);
         }
     }

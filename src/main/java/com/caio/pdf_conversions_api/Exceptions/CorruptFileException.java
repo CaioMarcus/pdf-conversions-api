@@ -1,6 +1,6 @@
 package com.caio.pdf_conversions_api.Exceptions;
 
-public class CorruptFileException extends Exception
+public class CorruptFileException extends ConversionException
 {
     private final String file;
 
