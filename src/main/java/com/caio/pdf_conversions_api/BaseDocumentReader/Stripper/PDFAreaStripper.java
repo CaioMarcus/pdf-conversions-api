@@ -15,17 +15,17 @@ import java.util.stream.Collectors;
 public class PDFAreaStripper extends PDFTextStripper {
 
     private List<LineData> lines = new ArrayList<>();
-    private LineData currentLineData = null;
+    protected LineData currentLineData = null;
     private Map.Entry<String, Float[]> lastSegment;
-    private CharData currentCharData;
+    protected CharData currentCharData;
 
     private final float SENSIBILITY;
-    private float currentX = 0;
+    protected float currentX = 0;
     private float currentY = 0;
-    private float currentWidth = 0;
-    private float currentHeight = 0;
+    protected float currentWidth = 0;
+    protected float currentHeight = 0;
 
-    private Rectangle2D.Double limitRegion;
+    protected Rectangle2D.Double limitRegion;
 
     public PDFAreaStripper(float sensibility){
         super();
@@ -113,7 +113,7 @@ public class PDFAreaStripper extends PDFTextStripper {
             currentCharData.setLetter(currentCharData.getLetter() + "    ");
     }
 
-    private boolean isPositionInsideLimitRegion(float x, float y, float w, float h){
+    protected boolean isPositionInsideLimitRegion(float x, float y, float w, float h){
         return x > this.limitRegion.getX() &&
                 y > this.limitRegion.getY() &&
                 x + w < this.limitRegion.getX() + this.limitRegion.getWidth() &&

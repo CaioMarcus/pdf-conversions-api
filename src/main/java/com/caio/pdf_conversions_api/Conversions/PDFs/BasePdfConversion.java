@@ -177,7 +177,7 @@ public abstract class BasePdfConversion extends ConversionThread {
     }
 
     protected void setDocumentGivenTotalValue(LineData lineData) {
-        this.documentGivenTotalValue = this.extractVerificationLine(lineData);
+        this.documentGivenTotalValue = this.extractValueFromVerificationLine(lineData);
     }
 
     protected void readDate(LineData line){
@@ -236,7 +236,7 @@ public abstract class BasePdfConversion extends ConversionThread {
     }
 
     protected void doVerification(LineData line, String currentDocumentName){
-        this.documentGivenTotalValue = this.extractVerificationLine(line);
+        this.documentGivenTotalValue = this.extractValueFromVerificationLine(line);
         this.doVerification(currentDocumentName);
     }
 
@@ -269,13 +269,13 @@ public abstract class BasePdfConversion extends ConversionThread {
     }
 
 
-    protected abstract String extractVerificationLine(LineData line);
+    protected abstract String extractValueFromVerificationLine(LineData line);
+    protected abstract boolean isDataLine(LineData line);
     protected abstract void setIndexLine();
     protected abstract void setUnwantedPageLines();
     protected abstract void setUnwantedLines();
     protected abstract void setDateLine();
     protected abstract void setVerificationLine();
     protected abstract void processLine(LineData line);
-    protected abstract boolean isDataLine(LineData line);
     protected abstract void executeBeforeReadingPage(PDDocument document);
 }

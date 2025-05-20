@@ -22,7 +22,7 @@ public class SonyMusicPublishing extends BasePdfConversion {
     }
 
     @Override
-    protected String extractVerificationLine(LineData line) {
+    protected String extractValueFromVerificationLine(LineData line) {
         return line.getLineSeparated()[1];
     }
 

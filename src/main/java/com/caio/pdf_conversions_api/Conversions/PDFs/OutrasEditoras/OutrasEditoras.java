@@ -111,7 +111,7 @@ public class OutrasEditoras extends BasePdfConversion {
     }
 
     @Override
-    protected String extractVerificationLine(LineData line){
+    protected String extractValueFromVerificationLine(LineData line){
         String[] lineSep = line.getLineSeparated();
         if (lineSep.length > 2 && Helper.verificaRateioObra(lineSep[lineSep.length - 3]))
             return lineSep[lineSep.length - 2];

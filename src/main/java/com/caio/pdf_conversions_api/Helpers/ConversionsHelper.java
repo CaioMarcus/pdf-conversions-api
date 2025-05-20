@@ -3,6 +3,7 @@ package com.caio.pdf_conversions_api.Helpers;
 import com.caio.pdf_conversions_api.Conversions.ConversionThread;
 import com.caio.pdf_conversions_api.Conversions.ConversionType;
 import com.caio.pdf_conversions_api.Conversions.PDFs.Abramus.AbramusDigital;
+import com.caio.pdf_conversions_api.Conversions.PDFs.BMG.DocumentoBMG;
 import com.caio.pdf_conversions_api.Conversions.PDFs.OutrasEditoras.OutrasEditoras;
 import com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico.RelatorioAnalitico;
 import com.caio.pdf_conversions_api.Conversions.PDFs.Sony.SonyMusic;
@@ -26,22 +27,17 @@ public class ConversionsHelper {
             String adjustedType = type.toUpperCase().replace(" ", "_");
             ConversionType documentType = ConversionType.valueOf(adjustedType);
 
-            if (documentType == ConversionType.RELATORIO_ANALITICO)
-                return new RelatorioAnalitico(conversionFilesPath, xlsName, filesToConvert);
-            if (documentType == ConversionType.UNIVERSAL)
-                return new Universal(conversionFilesPath, xlsName, filesToConvert);
-            if (documentType == ConversionType.SONY_MUSIC)
-                return new SonyMusic(conversionFilesPath, xlsName, filesToConvert);
-            if (documentType == ConversionType.SONY_MUSIC_PUBLISHING)
-                return new SonyMusicPublishing(conversionFilesPath, xlsName, filesToConvert);
-            if (documentType == ConversionType.ABRAMUS_DIGITAL)
-                return new AbramusDigital(conversionFilesPath, xlsName, filesToConvert);
-            if (documentType == ConversionType.WARNER)
-                return new Warner(conversionFilesPath, xlsName, filesToConvert);
-            if (documentType == ConversionType.OUTRAS_EDITORAS)
-                return new OutrasEditoras(conversionFilesPath, xlsName, filesToConvert);
-
-            throw new ConversionTypeNotFound();
+            return switch (documentType) {
+                case RELATORIO_ANALITICO -> new RelatorioAnalitico(conversionFilesPath, xlsName, filesToConvert);
+                case UNIVERSAL -> new Universal(conversionFilesPath, xlsName, filesToConvert);
+                case SONY_MUSIC -> new SonyMusic(conversionFilesPath, xlsName, filesToConvert);
+                case SONY_MUSIC_PUBLISHING -> new SonyMusicPublishing(conversionFilesPath, xlsName, filesToConvert);
+                case ABRAMUS_DIGITAL -> new AbramusDigital(conversionFilesPath, xlsName, filesToConvert);
+                case WARNER -> new Warner(conversionFilesPath, xlsName, filesToConvert);
+                case OUTRAS_EDITORAS -> new OutrasEditoras(conversionFilesPath, xlsName, filesToConvert);
+                case BMG -> new DocumentoBMG(conversionFilesPath, xlsName, filesToConvert);
+                default -> throw new ConversionTypeNotFound();
+            };
         } catch (IllegalArgumentException e){
             e.printStackTrace();
             throw new ConversionTypeNotFound();

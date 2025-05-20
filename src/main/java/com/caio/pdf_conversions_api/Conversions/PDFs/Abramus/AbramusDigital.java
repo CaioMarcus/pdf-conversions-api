@@ -54,7 +54,7 @@ public class AbramusDigital extends BasePdfConversion {
     }
 
     @Override
-    protected String extractVerificationLine(LineData line) {
+    protected String extractValueFromVerificationLine(LineData line) {
         String[] lineSep = line.getLineSeparated();
         return lineSep[lineSep.length - 1];
     }
