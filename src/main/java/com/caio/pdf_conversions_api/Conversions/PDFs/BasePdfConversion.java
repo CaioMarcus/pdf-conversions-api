@@ -25,6 +25,7 @@ public abstract class BasePdfConversion extends ConversionThread {
     protected boolean isLineVerificationInFileBeginning;
     protected int currentPage = 0;
     protected int currentLine = 0;
+    protected boolean readedFirstPage;
 
     protected boolean stripperSetSortByPosition = true;
     protected Rectangle2D.Double stripperBounds;
@@ -118,12 +119,16 @@ public abstract class BasePdfConversion extends ConversionThread {
             resetDocumentAtributes();
             this.executeBeforeReadingPage(documentoAtual);
             int totalPages = documentoAtual.getNumberOfPages();
-            for (int currentPage = 1; currentPage < totalPages + 1; currentPage++) {
+            for (currentPage = 1; currentPage < totalPages + 1; currentPage++) {
                 if (Thread.currentThread().isInterrupted()) {
                     return;
                 }
 //                System.out.printf("Lendo Página: %d%n", currentPage);
                 this.currentPageLines = extractPageData(documentoAtual, currentPage);
+                if (this.currentPage == 1 && !readedFirstPage){
+                    this.executeOnFirstPage();
+                    this.readedFirstPage = true;
+                }
                 processLines(currentPageLines, arquivo);
             }
         } catch (IOException e) {
@@ -193,12 +198,12 @@ public abstract class BasePdfConversion extends ConversionThread {
         this.documentTotalSum += value;
     }
 
-    protected void addResult(ResultData result, Double value){
+    protected void addResult(ResultData result){
         /*if (this.resultados.getFirst().length != result.length)
             throw new RuntimeException("Size of Index Line different from result. This will break later.");*/
 
         this.resultadosResultData.add(result);
-        this.documentTotalSum += value;
+        this.documentTotalSum += (Double) result.getNet_revenue();
     }
 
     protected void doVerification(String currentDocumentName){
@@ -266,8 +271,10 @@ public abstract class BasePdfConversion extends ConversionThread {
         this.currentPage = 0;
         this.documentTotalSum = 0D;
         this.currentDate = null;
+        this.readedFirstPage = false;
     }
 
+    protected void executeOnFirstPage(){}
 
     protected abstract String extractValueFromVerificationLine(LineData line);
     protected abstract boolean isDataLine(LineData line);

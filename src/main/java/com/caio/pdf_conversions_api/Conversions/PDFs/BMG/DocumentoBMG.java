@@ -1,7 +1,8 @@
 package com.caio.pdf_conversions_api.Conversions.PDFs.BMG;
 
 import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.LineData;
-import com.caio.pdf_conversions_api.BaseDocumentReader.Stripper.PDFAreaStripper;
+import com.caio.pdf_conversions_api.Conversions.PDFs.BMG.Enum.BMGDocument;
+import com.caio.pdf_conversions_api.Conversions.PDFs.BMG.Enum.BMGPosition;
 import com.caio.pdf_conversions_api.Conversions.PDFs.BasePdfConversion;
 import com.caio.pdf_conversions_api.Export.ResultData;
 import com.caio.pdf_conversions_api.Helpers.Helper;
@@ -15,6 +16,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class DocumentoBMG extends BasePdfConversion {
+
+    private BMGDocument documentType;
 
     public DocumentoBMG(String pdfPath, String xlsName, String[] filesToConvert) {
         super(pdfPath, xlsName, filesToConvert);
@@ -75,7 +78,7 @@ public class DocumentoBMG extends BasePdfConversion {
     @Override
     protected void setUnwantedLines() {
         this.unwantedLines = new String[]{
-                "Source Total", // Termos em Ingles
+                "Source Total", "Source Name", "Client Code", "Share Amount", "Amount Due", // Termos em Ingles
                 "Total por origem" //Termos em Portugues
         };
     }
@@ -96,7 +99,63 @@ public class DocumentoBMG extends BasePdfConversion {
     }
 
     @Override
+    protected void executeOnFirstPage() {
+        this.setCurrentDocumentType();
+    }
+
+    @Override
     protected void processLine(LineData line) {
+        switch (this.documentType) {
+            case BASE_BMG -> this.processBaseBmg(line);
+            case ROYALTY_BMG -> this.processRoyaltyBMG(line);
+            case null, default -> {
+            }
+        }
+    }
+
+    protected void processRoyaltyBMG(LineData line){
+        String linha = line.getFullLine();
+        String[] lineSep = line.getLineSeparated();
+
+        if (!isDataLine(line)){
+            this.switchSong(line);
+            return;
+        }
+
+        if (linha.toUpperCase().contains(String.format("%s TOTAL", this.currentSongName))) return;
+
+        Double netRevenue = Helper.ajustaNumero(lineSep[lineSep.length - 1]);
+        Double grossRevenue = Helper.ajustaNumero(lineSep[lineSep.length - 2]);
+        Double percentOwned = Helper.ajustaNumero(lineSep[lineSep.length - 3]);
+        Integer units = Helper.convertToInteger(lineSep[lineSep.length - 4]);
+
+        int offset = 0;
+        String catalogNumber = lineSep[lineSep.length - 5];
+        if (catalogNumber.matches("\\d{4}-\\d{4}")) {
+            catalogNumber = "";
+            offset = 1;
+        }
+
+        String salesDate = lineSep[lineSep.length - 6 + offset];
+        String country = lineSep[lineSep.length - 7 + offset];
+        String type = lineSep[lineSep.length - 8 + offset];
+        String source = lineSep[lineSep.length - 9 + offset];
+
+        ResultData resultData = addResultData(netRevenue,
+                grossRevenue,
+                percentOwned,
+                units,
+                catalogNumber,
+                salesDate,
+                source,
+                country,
+                type
+                );
+
+        this.addResult(resultData);
+    }
+
+    protected void processBaseBmg(LineData line) {
         String linha = line.getFullLine();
 
         if (Arrays.stream(this.switchSongTerms).anyMatch(linha::contains)){
@@ -134,36 +193,59 @@ public class DocumentoBMG extends BasePdfConversion {
         Integer units = getUnitsFromLine(line);
 
         String catalogNumber = line.getStringFromPosition(BMGPosition.CatalogNumber.getX(), BMGPosition.CatalogNumber.getW())
-                
-                .trim();
-        String period = line.getStringFromPosition(BMGPosition.Period.getX(), BMGPosition.Period.getW())
-                
-                .trim();
-        String sourceName = line.getStringFromPosition(BMGPosition.SourceName.getX(), BMGPosition.SourceName.getW())
-                
-                .trim();
-        String country = line.getStringFromPosition(BMGPosition.Country.getX(), BMGPosition.Country.getW())
-                
-                .trim();
-        String incomeType = line.getStringFromPosition(BMGPosition.IncomeType.getX(), BMGPosition.IncomeType.getW())
-                
                 .trim();
 
+        String period = line.getStringFromPosition(BMGPosition.Period.getX(), BMGPosition.Period.getW())
+                .trim();
+
+        String sourceName = line.getStringFromPosition(BMGPosition.SourceName.getX(), BMGPosition.SourceName.getW())
+                .trim();
+
+        String country = line.getStringFromPosition(BMGPosition.Country.getX(), BMGPosition.Country.getW())
+                .trim();
+
+        String incomeType = line.getStringFromPosition(BMGPosition.IncomeType.getX(), BMGPosition.IncomeType.getW())
+                .trim();
+
+
+        ResultData resultData = addResultData(amountDue,
+                amountReceived,
+                share,
+                units,
+                catalogNumber,
+                period,
+                sourceName,
+                country,
+                incomeType);
+
+        this.addResult(resultData);
+    }
+
+    private ResultData addResultData(Double netRevenue,
+                                     Double grossRevenue,
+                                     Double percentOwned,
+                                     Integer units,
+                                     String catalogNumber,
+                                     String salesDate,
+                                     String sourceName,
+                                     String country,
+                                     String incomeType) {
         ResultData resultData = new ResultData();
+
         resultData.setTrack_name(this.currentSongName);
-        resultData.setNet_revenue(amountDue);
-        resultData.setGross_revenue(amountReceived);
-        resultData.setPercent_owned(share);
+        resultData.setNet_revenue(netRevenue);
+        resultData.setGross_revenue(grossRevenue);
+        resultData.setPercent_owned(percentOwned);
         resultData.setUnits(units);
         resultData.setCatalog_id(catalogNumber);
-        resultData.setSales_date(period);
+        resultData.setSales_date(salesDate);
         resultData.setSource(sourceName);
         resultData.setCountry(country);
         resultData.setType(incomeType);
         resultData.setPath(this.currentFile);
-        resultData.setSales_date(this.currentDate);
+        resultData.setStatement_date(this.currentDate);
 
-        addResult(resultData, amountDue);
+        return resultData;
     }
 
     private Integer getUnitsFromLine(LineData line) {
@@ -185,10 +267,15 @@ public class DocumentoBMG extends BasePdfConversion {
                 Arrays.stream(this.ignoreSongLineTerms).noneMatch(line.getFullLine()::contains);
     }
 
+    private void setCurrentDocumentType(){
+        this.documentType = this.currentPageLines.getFirst().getFullLine().toUpperCase().contains("SUMMARY STATEMENT") ?
+                BMGDocument.BASE_BMG :
+                BMGDocument.ROYALTY_BMG;
+    }
+
     private void switchSong(LineData line) {
         this.currentSongName = line
-                .getStringFromPosition(BMGPosition.SongName.getX(), 99)
-                
+                .getStringFromPosition(BMGPosition.SongName.getX(), 99) //TODO: Change to full line
                 .trim();
     }
 

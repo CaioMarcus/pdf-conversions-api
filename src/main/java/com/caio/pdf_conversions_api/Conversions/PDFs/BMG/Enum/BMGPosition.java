@@ -1,4 +1,4 @@
-package com.caio.pdf_conversions_api.Conversions.PDFs.BMG;
+package com.caio.pdf_conversions_api.Conversions.PDFs.BMG.Enum;
 
 import com.caio.pdf_conversions_api.Conversions.PDFs.Base.LinePosition;
 

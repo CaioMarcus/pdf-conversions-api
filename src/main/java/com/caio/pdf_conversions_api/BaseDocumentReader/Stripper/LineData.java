@@ -52,7 +52,7 @@ public class LineData {
             if (charData.getX() - lastCharX > sensibility) {
                 stringBuilder.append("    ");
             }
-            if (charData.getLetter().isBlank() || charData.getLetter().isEmpty()) continue;
+            if (charData.getLetter().isEmpty()) continue;
             stringBuilder.append(charData.getLetter());
             lastCharX = charData.getX();
         }

@@ -147,7 +147,7 @@ public class AbramusDigital extends BasePdfConversion {
         resultData.setStatement_date(this.currentDate);
         resultData.setPath(this.currentFile);
 
-        this.addResult(resultData, currentValueDouble);
+        this.addResult(resultData);
         totalObraAtualCalculado += currentValueDouble;
 
 //        System.out.println(fullLine);

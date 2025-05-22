@@ -93,7 +93,7 @@ public class OutrasEditoras extends BasePdfConversion {
         resultData.setStatement_date(this.currentDate == null ? "" : this.currentDate);
         resultData.setPath(this.currentFile);
 
-        this.addResult(resultData, (Double) repasse);
+        this.addResult(resultData);
     }
 
     @Override

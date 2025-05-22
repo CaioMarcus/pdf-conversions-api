@@ -15,6 +15,14 @@ import java.util.regex.Pattern;
 
 
 public class Helper {
+
+    public static Integer convertToInteger(String value){
+        return value.isEmpty() ? null : Integer.parseInt(
+                value.replace(",", "")
+                .replace(".", "")
+        );
+    }
+
     /**
      * Normaliza uma string, removendo caracteres especiais, como ç, ã, á, etc.
      * @param input A string a ser normalizada.
