@@ -26,6 +26,7 @@ public abstract class BasePdfConversion extends ConversionThread {
     protected int currentPage = 0;
     protected int currentLine = 0;
     protected boolean readedFirstPage;
+    protected PDDocument documentoAtual;
 
     protected boolean stripperSetSortByPosition = true;
     protected Rectangle2D.Double stripperBounds;
@@ -116,6 +117,7 @@ public abstract class BasePdfConversion extends ConversionThread {
         Path filePath = Path.of(this.pdfPath, arquivo);
 
         try (PDDocument documentoAtual = Loader.loadPDF(filePath.toFile())) {
+            this.documentoAtual = documentoAtual;
             resetDocumentAtributes();
             this.executeBeforeReadingPage(documentoAtual);
             int totalPages = documentoAtual.getNumberOfPages();

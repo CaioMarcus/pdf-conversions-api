@@ -6,7 +6,7 @@ public enum BMGPosition implements LinePosition {
     SongName(37.97, 90.00),
     Units(336.95, 37.45),
     CatalogNumber(263.59, 74.89),
-    Period(221.68, 43.98),
+    Period(221.68, 42.98),
     SourceName(154.68, 68.00),
     Country(123.23, 32.50),
     IncomeType(37.97, 87.44);

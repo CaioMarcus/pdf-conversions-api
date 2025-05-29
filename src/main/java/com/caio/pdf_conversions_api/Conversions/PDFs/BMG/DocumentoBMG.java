@@ -70,7 +70,7 @@ public class DocumentoBMG extends BasePdfConversion {
     @Override
     protected void setUnwantedPageLines() {
         this.unwantedPageLines = new String[]{
-                "Payment Details", "Royalty Balance", "Summary Statement", "Summary Statement", // Termos em Ingles
+                "Payment Details", "Royalty Balance", // Termos em Ingles
                 "Work Show Produções Artísticas Ltda", "Saldo de royalties", "Total do relatório",//Termos em Portugues
         };
     }
@@ -123,6 +123,13 @@ public class DocumentoBMG extends BasePdfConversion {
         }
 
         if (linha.toUpperCase().contains(String.format("%s TOTAL", this.currentSongName))) return;
+
+        if (linha.toUpperCase().contains("TOTAL GERAL")) {
+            this.documentGivenTotalValue = lineSep[lineSep.length - 1];
+            this.doVerification(this.currentFile);
+        }
+
+        if (!Helper.verificaRateioObra(lineSep[lineSep.length - 3]) && linha.toUpperCase().contains("TOTAL")) return;
 
         Double netRevenue = Helper.ajustaNumero(lineSep[lineSep.length - 1]);
         Double grossRevenue = Helper.ajustaNumero(lineSep[lineSep.length - 2]);
@@ -268,7 +275,8 @@ public class DocumentoBMG extends BasePdfConversion {
     }
 
     private void setCurrentDocumentType(){
-        this.documentType = this.currentPageLines.getFirst().getFullLine().toUpperCase().contains("SUMMARY STATEMENT") ?
+        var documentMediaBox = this.documentoAtual.getPage(0).getMediaBox();
+        this.documentType = documentMediaBox.getHeight() > documentMediaBox.getWidth() ?
                 BMGDocument.BASE_BMG :
                 BMGDocument.ROYALTY_BMG;
     }

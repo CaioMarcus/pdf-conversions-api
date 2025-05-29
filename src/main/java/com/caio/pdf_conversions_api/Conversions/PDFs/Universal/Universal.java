@@ -264,7 +264,7 @@ public class Universal extends ConversionThread {
                                     listaTipoDeRenda.get(indiceRenda), PosM4, PosM3, PosM2, PosM1, editoraAtual, data});*/
 
                             ResultData resultData = new ResultData();
-                            resultData.setNet_revenue(somatorio);
+                            resultData.setNet_revenue(PosM1);
                             resultData.setPercent_owned(PosM2);
                             resultData.setGross_revenue(PosM3);
                             resultData.setUnits(PosM4);
