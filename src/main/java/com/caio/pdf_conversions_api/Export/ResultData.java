@@ -6,7 +6,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class ResultData implements CsvExportable {
-    private final String commaFormat = "\"%s\"";
+    protected final String commaFormat = "\"%s\"";
 
     private static final String indexLine =
         "catalog_id, " +
@@ -35,31 +35,31 @@ public class ResultData implements CsvExportable {
                 "statement_date, " +
                 "path";
 
-    private Object catalog_id = "";
-    private Object owner_id = "";
-    private Object category = "";
-    private Object characteristic = "";
-    private Object configuration = "";
-    private Object country = "";
-    private Object distributor = "";
-    private Object gross_revenue = "";
-    private Object net_revenue = "";
-    private Object isrc = "";
-    private Object iswc = "";
-    private Object cae = "";
-    private Object owner = "";
-    private Object owner_pseudonym = "";
-    private Object percent_owned = "";
-    private Object performance_event = "";
-    private Object sales_date = "";
-    private Object source = "";
-    private Object track_artist = "";
-    private Object track_name = "";
-    private Object type = "";
-    private Object units = "";
-    private Object currency = "";
-    private Object statement_date = "";
-    private Object path = "";
+    protected Object catalog_id = "";
+    protected Object owner_id = "";
+    protected Object category = "";
+    protected Object characteristic = "";
+    protected Object configuration = "";
+    protected Object country = "";
+    protected Object distributor = "";
+    protected Object gross_revenue = "";
+    protected Object net_revenue = "";
+    protected Object isrc = "";
+    protected Object iswc = "";
+    protected Object cae = "";
+    protected Object owner = "";
+    protected Object owner_pseudonym = "";
+    protected Object percent_owned = "";
+    protected Object performance_event = "";
+    protected Object sales_date = "";
+    protected Object source = "";
+    protected Object track_artist = "";
+    protected Object track_name = "";
+    protected Object type = "";
+    protected Object units = "";
+    protected Object currency = "";
+    protected Object statement_date = "";
+    protected Object path = "";
 
 
     @Override

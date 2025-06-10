@@ -23,6 +23,7 @@ public class RelatorioAnalitico extends ConversionThread {
     int indiceObraAtual;
     int quantiaObras;
     private String classificacaoConexo;
+    private String nomeDoArquivo;
     String[] linhasEditora;
     String[] linhasObra;
     String[] arrayObraAtual;
@@ -47,7 +48,7 @@ public class RelatorioAnalitico extends ConversionThread {
 
         assert arquivosNaPasta != null;
         for (int fileIndex = 0; fileIndex < arquivosNaPasta.length; fileIndex++) {
-            String nomeDoArquivo = arquivosNaPasta[fileIndex];
+            nomeDoArquivo = arquivosNaPasta[fileIndex];
             // Atribuindo valores a variáveis que vão ser utilizadas
             quantiaObras = 0;
 
@@ -150,14 +151,22 @@ public class RelatorioAnalitico extends ConversionThread {
                             } else {
                                 String autor = Helper.achaTermoEmComum(linha, linhasAutores, true);
 
-                                ResultData resultData = new ResultData();
-                                resultData.setCatalog_id(arrayObraAtual[0]);
-                                resultData.setIsrc(arrayObraAtual[1]);
-                                resultData.setTrack_name(arrayObraAtual[2]);
-                                resultData.setPerformance_event(arrayObraAtual[2]);
-                                resultData.setOwner(autor);
-                                resultData.setPercent_owned(Helper.ajustaNumero(palavras[palavras.length - 1]));
-                                resultData.setPath(nomeDoArquivo);
+                                ResultData resultData = this.getResultData(
+                                        Helper.ajustaNumero(palavras[palavras.length - 1]),
+                                        arrayObraAtual[0],
+                                        autor,
+                                        null,
+                                        arrayObraAtual[2],
+                                        null,
+                                        null,
+                                        arrayObraAtual[1],
+                                        null,
+                                        null,
+                                        null,
+                                        classificacaoConexo,
+                                        arrayObraAtual[2],
+                                        nomeDoArquivo
+                                );
 
                                 this.resultadosResultData.add(resultData);
 
@@ -285,21 +294,21 @@ public class RelatorioAnalitico extends ConversionThread {
             pseudonimo = new StringBuilder();
         }
 
-        RelatorioAnaliticoResultData resultData = new RelatorioAnaliticoResultData();
-
-        resultData.setPercent_owned(Helper.ajustaNumero(porcentagem));
-        resultData.setCatalog_id(arrayObraAtual[0]);
-        resultData.setOwner(editora);
-        resultData.setOwner_pseudonym(pseudonimo.toString());
-        resultData.setTrack_name(arrayObraAtual[2]);
-        resultData.setSource(associacao.toString());
-        resultData.setIswc(arrayObraAtual[1]);
-        resultData.setCae(CAE);
-        resultData.setStatement_date(arrayObraAtual[3]);
-        resultData.setOwner_id(codigo);
-        resultData.setType(tipoObra);
-
-        return resultData;
+        return getResultData(Helper.ajustaNumero(porcentagem),
+                arrayObraAtual[0],
+                editora,
+                pseudonimo.toString(),
+                arrayObraAtual[2],
+                associacao.toString(),
+                arrayObraAtual[1],
+                null,
+                CAE,
+                arrayObraAtual[3],
+                codigo,
+                tipoObra,
+                null,
+                nomeDoArquivo
+        );
 
         /*return new String[] {
                 arrayObraAtual[0],
@@ -314,6 +323,39 @@ public class RelatorioAnalitico extends ConversionThread {
                 porcentagem,
                 arrayObraAtual[3]
         };*/
+    }
+
+    protected RelatorioAnaliticoResultData getResultData(Object percentOwned,
+                                                         Object catalogId,
+                                                         Object owner,
+                                                         Object ownerPseudonym,
+                                                         Object trackName,
+                                                         Object source,
+                                                         Object iswc,
+                                                         Object isrc,
+                                                         Object cae,
+                                                         Object statementDate,
+                                                         Object ownerId,
+                                                         Object type,
+                                                         Object performanceEvent,
+                                                         Object path) {
+
+        RelatorioAnaliticoResultData resultData = new RelatorioAnaliticoResultData();
+        resultData.setPercent_owned(percentOwned == null ? "" : percentOwned);
+        resultData.setCatalog_id(catalogId == null ? "" : catalogId);
+        resultData.setOwner(owner == null ? "" : owner);
+        resultData.setOwner_pseudonym(ownerPseudonym== null ? "" : ownerPseudonym);
+        resultData.setTrack_name(trackName == null ? "" : trackName);
+        resultData.setSource(source == null ? "" : source);
+        resultData.setIswc(iswc == null ? "" : iswc);
+        resultData.setIsrc(isrc == null ? "" : isrc);
+        resultData.setCae(cae == null ? "" : cae);
+        resultData.setStatement_date(statementDate == null ? "" : statementDate);
+        resultData.setOwner_id(ownerId == null ? "" : ownerId);
+        resultData.setType(type == null ? "" : type);
+        resultData.setPerformance_event(performanceEvent == null ? "" : performanceEvent);
+        resultData.setPath(path == null ? "" : path);
+        return resultData;
     }
 
     String retornaEditora(String linhaAtual) {

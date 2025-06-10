@@ -6,6 +6,7 @@ import com.caio.pdf_conversions_api.Conversions.PDFs.Abramus.AbramusDigital;
 import com.caio.pdf_conversions_api.Conversions.PDFs.BMG.DocumentoBMG;
 import com.caio.pdf_conversions_api.Conversions.PDFs.OutrasEditoras.OutrasEditoras;
 import com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico.RelatorioAnalitico;
+import com.caio.pdf_conversions_api.Conversions.PDFs.RelatorioAnalitico.RelatorioAnaliticoOldExportFormat;
 import com.caio.pdf_conversions_api.Conversions.PDFs.Sony.SonyMusic;
 import com.caio.pdf_conversions_api.Conversions.PDFs.Sony.SonyMusicPublishing;
 import com.caio.pdf_conversions_api.Conversions.PDFs.Universal.Universal;
@@ -29,6 +30,7 @@ public class ConversionsHelper {
 
             return switch (documentType) {
                 case RELATORIO_ANALITICO -> new RelatorioAnalitico(conversionFilesPath, xlsName, filesToConvert);
+                case OLD_RELATORIO_ANALITICO -> new RelatorioAnaliticoOldExportFormat(conversionFilesPath, xlsName, filesToConvert);
                 case UNIVERSAL -> new Universal(conversionFilesPath, xlsName, filesToConvert);
                 case SONY_MUSIC -> new SonyMusic(conversionFilesPath, xlsName, filesToConvert);
                 case SONY_MUSIC_PUBLISHING -> new SonyMusicPublishing(conversionFilesPath, xlsName, filesToConvert);
