@@ -75,7 +75,7 @@ public class RelatorioAnalitico extends ConversionThread {
                     // Monta os Retângulos
                     rectTudo = new Rectangle2D.Double(ConvDis(0.0), ConvDis(54.51), ConvDis(210.00), ConvDis(222.51)); // Tudo
                     rect0 = new Rectangle2D.Double(ConvDis(27.02), ConvDis(54.51), ConvDis(52.41), ConvDis(222.51)); // Editora
-                    rect1 = new Rectangle2D.Double(ConvDis(50.00), ConvDis(54.51), ConvDis(77.00), ConvDis(222.51)); // Obra
+                    rect1 = new Rectangle2D.Double(ConvDis(50.00), ConvDis(54.51), ConvDis(57.00), ConvDis(222.51)); // Obra
                     // Adiciona o índice da planílha
                     Resultados.put(Resultados.size(), new String[]{"COD.OBRA", "ISWC", "TÍTULO PRINCIPAL DA OBRA", "COD.TITULAR", "TITULAR", "PSEUDONIMO", "COD.CAE", "ASSOCIAÇÃO", "CAT", "%", "DATA"});
                     //Editoras.put(String.valueOf(Editoras.size()), new String[]{"COD.OBRA", "ISWC", "TÍTULO PRINCIPAL DA OBRA", "EDITORA", "LINK", "DATA"});
@@ -461,19 +461,25 @@ public class RelatorioAnalitico extends ConversionThread {
     }
 
     boolean verificaData(String date) {
-        // Cria o formato da data
-        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-        // Verifica se a dara é do formato desejado
-        try {
-            df.parse(date);
-            if (date.length() == 10) {
-                return true;
+        String[] formatos = {"dd/MM/yyyy", "dd/MM/yy"};
+
+        for (String formato : formatos) {
+            SimpleDateFormat df = new SimpleDateFormat(formato);
+            df.setLenient(false);
+
+            try {
+                df.parse(date);
+                // Garante que a string original corresponde exatamente ao formato (tamanho certo, sem lixo extra)
+                if ((formato.equals("dd/MM/yyyy") && date.length() == 10) || (formato.equals("dd/MM/yy") && date.length() == 8)) {
+                    return true;
+                }
+            } catch (ParseException e) {
+                // Continua tentando o próximo formato
             }
-        } catch (ParseException e) {
-            return false;
         }
         return false;
     }
+
 
     boolean verificaLinhaObra(String[] linha_sep, int tipo) {
         // Atribuições
